@@ -196,6 +196,23 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 /* 人物列表抽屉也修一下 */
 #plistSheet{display:none;align-items:flex-end}
 #plistSheet.on{display:flex}
+
+/* ══════ 通用弹框（关于 / 注销）══════ */
+#aboutModal, #logout1, #logout2{display:none;align-items:center;justify-content:center;padding:18px}
+#aboutModal.on, #logout1.on, #logout2.on{display:flex}
+.mbox{background:#fff;border-radius:16px;width:100%;max-height:86vh;
+      display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 12px 48px rgba(0,0,0,.2)}
+.mhd{padding:16px 18px 14px;display:flex;align-items:center;justify-content:space-between;
+     border-bottom:1px solid var(--line);flex-shrink:0}
+.mhd h3{margin:0;font-size:16px}
+.mbd{overflow-y:auto;padding:16px 18px;font-size:13.5px;line-height:1.85;color:#3a4048}
+.mbd p{margin:0 0 10px}
+.mbd h4{margin:16px 0 4px;font-size:12px;color:var(--dim);font-weight:600}
+.mbd strong{color:#1a1d23}
+.mft{padding:12px 18px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;
+     flex-shrink:0;border-top:1px solid var(--line)}
+.mft .sbtn{margin:0;flex:1}
 </style>
 </head>
 <body>
@@ -360,6 +377,84 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
       <h4>删除</h4>
       <button class="sbtn danger" id="btnDelete">删除这个人物</button>
       <div class="hint">连同人设、头像、全部对话一起删除，不可恢复。</div>
+    </div>
+
+    <div class="sblock">
+      <h4>关于</h4>
+      <button class="sbtn" id="btnAbout">关于 OpenCompanion</button>
+    </div>
+
+    <div class="sblock">
+      <h4>账号</h4>
+      <button class="sbtn danger" id="btnLogout">注销账号</button>
+      <div class="hint">会删除本机全部数据，包括 API 配置、所有人设、头像与聊天记录。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 关于 ══════ -->
+<div class="sheet maskSheet" id="aboutModal">
+  <div class="mbox">
+    <div class="mhd"><h3>关于 OpenCompanion</h3><button class="xbtn" id="aboutClose">✕</button></div>
+    <div class="mbd">
+      <div style="text-align:center;margin-bottom:16px">
+        <img src="brand/icon-96.png" alt="" style="width:64px;height:64px;image-rendering:pixelated">
+      </div>
+      <p><strong>OpenCompanion</strong> 是一个可以完全自己定义的 AI 伴侣。
+         填上你自己的 API，用一句话描述想要的角色，它会帮你把设定打磨成完整人设，
+         然后就可以聊天了。所有数据都存在你自己的手机上，没有云端账号。</p>
+      <h4>开发者</h4>
+      <p>CollinsLiu<br><span style="font-size:11.5px;color:var(--dim)">Benzene AI Studio · Eight Pixel</span></p>
+      <h4>反馈</h4>
+      <p>遇到问题、有建议，都欢迎来信：<br>
+         <a href="mailto:collinsliu9@gmail.com" style="color:var(--accent)">collinsliu9@gmail.com</a></p>
+      <h4>版本</h4>
+      <p><code>beta v0.1.0</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 注销 · 第一次确认 ══════ -->
+<div class="sheet maskSheet" id="logout1">
+  <div class="mbox">
+    <div class="mhd"><h3>确认注销？</h3></div>
+    <div class="mbd">
+      <p style="background:#fdecec;color:#c62828;padding:11px 13px;border-radius:9px;margin:0;
+                font-size:13px">注销将<strong>永久删除本机的全部内容</strong>，包括：</p>
+      <ul style="margin:12px 0 0;padding-left:20px;color:#3a4048;font-size:13.5px;line-height:2">
+        <li>API 配置与密钥</li>
+        <li>所有伴侣的人设</li>
+        <li>所有上传的头像</li>
+        <li>全部聊天记录</li>
+        <li>定时问候设置</li>
+      </ul>
+      <p style="margin-top:14px;color:#d93025;font-size:13px">
+        此操作<strong>不可撤销</strong>，也无法恢复。</p>
+    </div>
+    <div class="mft">
+      <button class="sbtn" id="logout1Cancel">取消</button>
+      <button class="sbtn danger" id="logout1Ok">确认注销</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 注销 · 第二次确认 ══════ -->
+<div class="sheet maskSheet" id="logout2">
+  <div class="mbox">
+    <div class="mhd"><h3>最后确认</h3></div>
+    <div class="mbd">
+      <p style="font-size:13.5px;color:#3a4048;line-height:1.8">请输入下面这句话以确认注销：</p>
+      <p style="margin:10px 0;padding:11px 13px;background:#f7f8fa;border-radius:9px;
+                font-size:13px;color:#1a1d23;user-select:all">
+        我已确认我要注销我的OpenCompanion账号</p>
+      <input id="logoutInput" placeholder="在此输入上面这句话"
+             style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);
+                    background:#f7f8fa;color:var(--fg);font:inherit;outline:none">
+      <div class="hint" id="logoutHint" style="color:#d93025;display:none">文字不一致，请重新输入</div>
+    </div>
+    <div class="mft">
+      <button class="sbtn" id="logout2Cancel">取消</button>
+      <button class="sbtn danger" id="logout2Ok">确认注销</button>
     </div>
   </div>
 </div>
@@ -954,6 +1049,10 @@ $('#btnDelete').onclick = () => {
 
 /* 安卓返回键：优先关面板 */
 window.OCBack = () => {
+  for (const m of ['#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
+    const el = document.querySelector(m);
+    if (el && el.classList.contains('on')) { el.classList.remove('on'); return true; }
+  }
   if (settingsEl.classList.contains('on')) { closeSettings(); return true; }
   if (plistSheet.classList.contains('on')) { plistSheet.classList.remove('on'); return true; }
   if ($('#chatScreen').classList.contains('on')) { renderList(); show('#sList'); return true; }
@@ -1133,6 +1232,74 @@ $('#btnAgain').onclick = () => {
 
 /* ══════════ 启动 ══════════ */
 runSplash();
+
+/* ══════════ 关于 ══════════ */
+const aboutModal = $('#aboutModal');
+$('#btnAbout').onclick = () => aboutModal.classList.add('on');
+$('#aboutClose').onclick = () => aboutModal.classList.remove('on');
+aboutModal.onclick = e => { if (e.target === aboutModal) aboutModal.classList.remove('on'); };
+
+/* ══════════ 注销（两步确认）══════════ */
+const LOGOUT_PHRASE = '我已确认我要注销我的OpenCompanion账号';
+const logout1El = $('#logout1'), logout2El = $('#logout2');
+const logoutInput = $('#logoutInput'), logoutHint = $('#logoutHint');
+
+$('#btnLogout').onclick = () => {
+  closeSettings();
+  logout1El.classList.add('on');
+};
+$('#logout1Cancel').onclick = () => logout1El.classList.remove('on');
+
+$('#logout1Ok').onclick = () => {
+  logout1El.classList.remove('on');
+  logoutInput.value = '';
+  logoutHint.style.display = 'none';
+  logout2El.classList.add('on');
+  setTimeout(() => logoutInput.focus(), 150);
+};
+
+$('#logout2Cancel').onclick = () => logout2El.classList.remove('on');
+logoutInput.addEventListener('input', () => { logoutHint.style.display = 'none'; });
+
+$('#logout2Ok').onclick = () => {
+  const typed = logoutInput.value.trim();
+  if (typed !== LOGOUT_PHRASE) {
+    logoutHint.style.display = 'block';
+    logoutInput.focus();
+    return;
+  }
+  // 清空全部本地数据
+  try {
+    localStorage.removeItem('oc_agreed_v1');
+    localStorage.removeItem('oc_config');
+    localStorage.removeItem('oc_personas');
+    if (hasNative) {
+      Native.saveConfig('{}');
+      Native.savePersonas('[]');
+      Native.setAgreed('0');
+      if (Native.scheduleAlarms) Native.scheduleAlarms('[]');  // 一并清掉闹钟
+    }
+  } catch(e) {}
+
+  personas = [];
+  cfg = {};
+  cur = null;
+
+  logout2El.classList.remove('on');
+  document.body.innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
+    + 'height:100vh;gap:14px;font:15px -apple-system,PingFang SC,sans-serif;color:#1a1d23;'
+    + 'background:#fff;text-align:center;padding:24px">'
+    + '<div style="font-size:17px;font-weight:600">账号已注销</div>'
+    + '<div style="font-size:13px;color:#6b7280">本机数据已全部删除</div>'
+    + '<div style="margin-top:10px;font-size:13px;color:#4b6ef5;cursor:pointer" '
+    + 'onclick="location.reload()">重新开始</div></div>';
+};
+
+[logout1El, logout2El].forEach(m => {
+  m.onclick = e => { if (e.target === m) m.classList.remove('on'); };
+});
+
 </script>
 </body>
 </html>

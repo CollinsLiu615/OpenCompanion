@@ -102,6 +102,38 @@ header .mid{min-width:0;margin-right:auto}
        background:#fff;border:1px solid var(--line);color:var(--fg);box-shadow:0 4px 20px rgba(0,0,0,.1);padding:10px 18px;
        border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══════ 通用弹框 ══════ */
+.modal{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:70;
+       display:none;align-items:center;justify-content:center;padding:20px}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:16px;width:min(440px,100%);
+      max-height:86vh;display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 12px 48px rgba(0,0,0,.18)}
+.mhd{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;
+     border-bottom:1px solid var(--line);flex-shrink:0}
+.mhd h3{margin:0;font-size:16px}
+.mbd{overflow-y:auto;padding:18px 20px;font-size:13.5px;line-height:1.85;color:#3a4048}
+.mbd p{margin:0 0 10px}
+.mbd h4{margin:16px 0 4px;font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.05em}
+.mbd strong{color:#1a1d23}
+.mft{padding:14px 20px 18px;display:flex;gap:10px;flex-shrink:0;
+     border-top:1px solid var(--line)}
+.mft .sbtn{margin:0;flex:1}
+.dimnote{font-size:11.5px;color:var(--dim)}
+.warnbox{background:#fdecec;color:#c62828;padding:11px 13px;border-radius:9px;
+         font-size:13px;margin:0}
+.chip{padding:7px 14px;border-radius:20px;border:1px solid var(--line);
+      background:#f7f8fa;color:#4a505a;font-size:13px;cursor:pointer;user-select:none}
+.chip:hover{background:#eef2ff;border-color:var(--accent);color:var(--accent)}
+.gitem{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;
+       border:1px solid var(--line);margin-bottom:8px;cursor:pointer}
+.gitem:hover{background:#f7f8fa}
+.gitem .gt{font-weight:600;font-size:15px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.gitem .gc{flex:1;font-size:12.5px;color:var(--dim);overflow:hidden;
+           text-overflow:ellipsis;white-space:nowrap}
+.gitem .gdel{padding:6px 10px;border-radius:8px;border:1px solid #f0c4c4;background:#fff;
+             color:var(--danger);font-size:12px;cursor:pointer;flex-shrink:0}
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -131,7 +163,7 @@ header .mid{min-width:0;margin-right:auto}
 <div id="log"></div>
 
 <div id="bar">
-  <textarea id="msg" rows="1" placeholder="说点什么…（Enter 发送，Shift+Enter 换行）"></textarea>
+  <textarea id="msg" rows="1" placeholder="说点什么…"></textarea>
   <button id="send">发送</button>
 </div>
 
@@ -188,8 +220,8 @@ header .mid{min-width:0;margin-right:auto}
     <div class="sblock">
       <h4>定时问候</h4>
       <div id="schedList"></div>
-      <button class="sbtn" id="btnAddSched" style="margin-top:8px">＋ 添加一个时刻</button>
-      <div class="hint">服务运行时到点自动发问候。需要本程序保持运行。</div>
+      <button class="sbtn" id="btnAddGreet" style="margin-top:8px">＋ 添加一个问候</button>
+      <div class="hint">到点自动发一条消息。需要本程序保持运行。</div>
     </div>
 
     <!-- 对话 -->
@@ -208,8 +240,132 @@ header .mid{min-width:0;margin-right:auto}
       <div class="hint">连同人设、头像、全部对话一起删除，不可恢复。</div>
     </div>
 
+    <!-- 定时问候弹框 -->
+<div class="modal" id="greetModal">
+  <div class="mbox">
+    <div class="mhd">
+      <h3 id="greetTitle">添加问候</h3>
+      <button class="iconbtn" id="greetClose">✕</button>
+    </div>
+    <div class="mbd">
+      <h4>时间</h4>
+      <input type="time" id="greetTime" value="08:00"
+             style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+                    background:#f7f8fa;color:var(--fg);font:inherit;outline:none">
+      <h4 style="margin-top:16px">问候内容</h4>
+      <textarea id="greetText" rows="3" placeholder="例如：提醒我喝水 / 问我今天有没有好好吃饭 / 催我早点睡"
+        style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+               background:#f7f8fa;color:var(--fg);font:inherit;resize:vertical;line-height:1.7;outline:none"></textarea>
+      <div class="hint">写一句你想让它做的事，它会用人设的语气说出来。</div>
+      <h4 style="margin-top:14px">快捷选择</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <span class="chip" data-t="早上好，用你的方式跟我打招呼">早安</span>
+        <span class="chip" data-t="提醒我该吃午饭了">午饭</span>
+        <span class="chip" data-t="问我今天过得怎么样">下班</span>
+        <span class="chip" data-t="催我早点睡觉，别熬夜">晚安</span>
+        <span class="chip" data-t="提醒我喝水">喝水</span>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="sbtn" id="greetCancel">取消</button>
+      <button class="sbtn primary" id="greetSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 关于 -->
+    <div class="sblock">
+      <h4>关于</h4>
+      <button class="sbtn" id="btnAbout">关于 OpenCompanion</button>
+    </div>
+
+    <!-- 注销 -->
+    <div class="sblock">
+      <h4>账号</h4>
+      <button class="sbtn danger" id="btnLogout">注销账号</button>
+      <div class="hint">会删除本地全部数据，包括 API 配置、所有人设、头像与聊天记录。</div>
+    </div>
+
   </div>
 </aside>
+
+<!-- 关于 -->
+<div class="modal" id="aboutModal">
+  <div class="mbox">
+    <div class="mhd">
+      <h3>关于 OpenCompanion</h3>
+      <button class="iconbtn" id="aboutClose">✕</button>
+    </div>
+    <div class="mbd">
+      <div style="text-align:center;margin-bottom:18px">
+        <img src="/static/brand/icon-96.png" alt="" style="width:64px;height:64px;image-rendering:pixelated">
+      </div>
+      <p><strong>OpenCompanion</strong> 是一个可以完全自己定义的 AI 伴侣。
+         填上你自己的 API，用一句话描述想要的角色，它会帮你把设定打磨成完整人设，
+         然后就可以聊天了。所有数据都存在你自己的设备上，没有云端账号。</p>
+
+      <h4>开发者</h4>
+      <p>CollinsLiu<br><span class="dimnote">Benzene AI Studio · Eight Pixel</span></p>
+
+      <h4>反馈</h4>
+      <p>遇到问题、有建议，都欢迎来信：<br>
+         <a href="mailto:collinsliu9@gmail.com" style="color:var(--accent)">collinsliu9@gmail.com</a></p>
+
+      <h4>版本</h4>
+      <p><code>beta v0.1.0</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- 注销 · 第一次确认 -->
+<div class="modal" id="logout1">
+  <div class="mbox">
+    <div class="mhd"><h3>确认注销？</h3></div>
+    <div class="mbd">
+      <p class="warnbox">注销将<strong>永久删除本机的全部内容</strong>，包括：</p>
+      <ul style="margin:10px 0 0;padding-left:20px;color:#3a4048;font-size:13.5px;line-height:2">
+        <li>API 配置与密钥</li>
+        <li>所有伴侣的人设</li>
+        <li>所有上传的头像</li>
+        <li>全部聊天记录</li>
+        <li>定时问候设置</li>
+      </ul>
+      <p style="margin-top:14px;color:var(--danger);font-size:13px">
+        此操作<strong>不可撤销</strong>，也无法恢复。
+      </p>
+    </div>
+    <div class="mft">
+      <button class="sbtn" id="logout1Cancel">取消</button>
+      <button class="sbtn danger" id="logout1Ok">确认注销</button>
+    </div>
+  </div>
+</div>
+
+<!-- 注销 · 第二次确认（输入确认文字） -->
+<div class="modal" id="logout2">
+  <div class="mbox">
+    <div class="mhd"><h3>最后确认</h3></div>
+    <div class="mbd">
+      <p style="font-size:13.5px;color:#3a4048;line-height:1.8">
+        请输入下面这句话以确认注销：
+      </p>
+      <p style="margin:10px 0;padding:11px 13px;background:#f7f8fa;border-radius:9px;
+                font-size:13px;color:#1a1d23;user-select:all">
+        我已确认我要注销我的OpenCompanion账号
+      </p>
+      <input id="logoutInput" placeholder="在此输入上面这句话"
+             style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);
+                    background:#f7f8fa;color:var(--fg);font:inherit;outline:none">
+      <div class="hint" id="logoutHint" style="color:var(--danger);display:none">
+        文字不一致，请重新输入
+      </div>
+    </div>
+    <div class="mft">
+      <button class="sbtn" id="logout2Cancel">取消</button>
+      <button class="sbtn danger" id="logout2Ok">确认注销</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -366,69 +522,99 @@ $('#avFile').onchange = async e => {
 };
 
 /* ══════ 设置：定时问候 ══════ */
-const KIND_LABEL = {morning:"早安", noon:"午安", dinner:"晚饭", night:"晚安"};
+/* 定时问候：自定义内容 + 时间 */
+let editingGreetIdx = -1;
+const greetModal = $('#greetModal');
 
 async function loadSchedule() {
   const box = $('#schedList');
   try {
     const rows = await (await fetch('/api/schedule/' + encodeURIComponent(PID))).json();
-    box.innerHTML = rows.length ? '' : '<div class="hint">还没有设置时刻</div>';
-    rows.forEach((r, i) => {
-      const d = document.createElement('div');
-      d.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
-      d.innerHTML = `<input type="time" value="${r.at}" data-i="${i}" class="scTime"
-                        style="flex:0 0 110px;padding:8px 10px;border-radius:8px;
-                               border:1px solid var(--line);background:#f7f8fa;color:var(--fg)">
-                     <select data-i="${i}" class="scKind"
-                        style="flex:1;padding:8px 10px;border-radius:8px;
-                               border:1px solid var(--line);background:#f7f8fa;color:var(--fg)">
-                       ${Object.entries(KIND_LABEL).map(([k,v]) =>
-                          `<option value="${k}"${k===r.kind?' selected':''}>${v}</option>`).join('')}
-                     </select>
-                     <button class="scDel" data-i="${i}"
-                        style="padding:8px 11px;border-radius:8px;border:1px solid var(--line);
-                               background:#fff;color:var(--danger);cursor:pointer">删</button>`;
-      box.appendChild(d);
-    });
-    box.querySelectorAll('.scDel').forEach(btn => {
-      btn.onclick = () => { btn.closest('div').remove(); };
-    });
+    window.__sched = rows || [];
+    renderSchedList();
   } catch(e) { box.innerHTML = '<div class="hint">读取失败</div>'; }
 }
 
-$('#btnAddSched').onclick = () => {
+function renderSchedList() {
   const box = $('#schedList');
-  if (box.querySelector('.hint')) box.innerHTML = '';
-  const d = document.createElement('div');
-  d.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
-  d.innerHTML = `<input type="time" value="09:00" class="scTime"
-                    style="flex:0 0 110px;padding:8px 10px;border-radius:8px;
-                           border:1px solid var(--line);background:#f7f8fa;color:var(--fg)">
-                 <select class="scKind"
-                    style="flex:1;padding:8px 10px;border-radius:8px;
-                           border:1px solid var(--line);background:#f7f8fa;color:var(--fg)">
-                   ${Object.entries(KIND_LABEL).map(([k,v]) =>
-                      `<option value="${k}">${v}</option>`).join('')}
-                 </select>
-                 <button class="scDel"
-                    style="padding:8px 11px;border-radius:8px;border:1px solid var(--line);
-                           background:#fff;color:var(--danger);cursor:pointer">删</button>`;
-  box.appendChild(d);
-  d.querySelector('.scDel').onclick = () => d.remove();
-};
-
-// 保存定时设置（点"保存修改"时一起保存）
-async function saveSchedule() {
-  const rows = [];
-  document.querySelectorAll('#schedList > div').forEach(d => {
-    const t = d.querySelector('.scTime'), k = d.querySelector('.scKind');
-    if (t && k) rows.push({at: t.value, kind: k.value});
-  });
-  await fetch('/api/schedule/' + encodeURIComponent(PID), {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({schedule: rows})
+  const rows = window.__sched || [];
+  if (!rows.length) {
+    box.innerHTML = '<div class="hint">还没有设置问候</div>';
+    return;
+  }
+  box.innerHTML = '';
+  rows.forEach((r, i) => {
+    const d = document.createElement('div');
+    d.className = 'gitem';
+    d.innerHTML = `<div class="gt">${r.at}</div>
+                   <div class="gc">${esc(r.text || KIND_LABEL_FALLBACK(r))}</div>
+                   <button class="gdel">删</button>`;
+    d.querySelector('.gdel').onclick = ev => {
+      ev.stopPropagation();
+      window.__sched = rows.filter((_, j) => j !== i);
+      saveSchedule();
+      renderSchedList();
+      toast('已删除');
+    };
+    d.onclick = () => openGreet(i);
+    box.appendChild(d);
   });
 }
+
+// 兼容旧数据：只有 kind 没有 text
+function KIND_LABEL_FALLBACK(r) {
+  const m = {morning:'早安', noon:'午安', dinner:'晚饭', night:'晚安'};
+  return m[r.kind] || '(未设置内容)';
+}
+
+function openGreet(idx) {
+  editingGreetIdx = (idx === undefined || idx === null) ? -1 : idx;
+  const rows = window.__sched || [];
+  if (editingGreetIdx >= 0 && rows[editingGreetIdx]) {
+    $('#greetTitle').textContent = '修改问候';
+    $('#greetTime').value = rows[editingGreetIdx].at;
+    $('#greetText').value = rows[editingGreetIdx].text || '';
+  } else {
+    $('#greetTitle').textContent = '添加问候';
+    $('#greetTime').value = '08:00';
+    $('#greetText').value = '';
+  }
+  greetModal.classList.add('on');
+}
+
+$('#btnAddGreet').onclick = () => openGreet(-1);
+$('#greetClose').onclick = () => greetModal.classList.remove('on');
+$('#greetCancel').onclick = () => greetModal.classList.remove('on');
+greetModal.onclick = e => { if (e.target === greetModal) greetModal.classList.remove('on'); };
+
+document.querySelectorAll('#greetModal .chip').forEach(c => {
+  c.onclick = () => { $('#greetText').value = c.dataset.t; };
+});
+
+$('#greetSave').onclick = () => {
+  const at = $('#greetTime').value;
+  const text = $('#greetText').value.trim();
+  if (!at) { toast('请选择时间'); return; }
+  if (!text) { toast('请填写问候内容'); return; }
+  if (!window.__sched) window.__sched = [];
+  if (editingGreetIdx >= 0) window.__sched[editingGreetIdx] = {at, text};
+  else window.__sched.push({at, text});
+  window.__sched.sort((a, b) => a.at.localeCompare(b.at));
+  saveSchedule();
+  renderSchedList();
+  greetModal.classList.remove('on');
+  toast('已保存');
+};
+
+async function saveSchedule() {
+  try {
+    await fetch('/api/schedule/' + encodeURIComponent(PID), {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({schedule: window.__sched || []})
+    });
+  } catch(e) {}
+}
+
 loadSchedule();
 
 /* ══════ 设置：清除记录 ══════ */
@@ -452,6 +638,76 @@ $('#btnDeletePersona').onclick = async () => {
   if (d.ok) { location.href = '/app'; }
   else toast('删除失败');
 };
+
+/* ══════ 关于 ══════ */
+const aboutModal = $('#aboutModal');
+$('#btnAbout').onclick = () => aboutModal.classList.add('on');
+$('#aboutClose').onclick = () => aboutModal.classList.remove('on');
+aboutModal.onclick = e => { if (e.target === aboutModal) aboutModal.classList.remove('on'); };
+
+/* ══════ 注销（两步确认）══════ */
+const LOGOUT_PHRASE = '我已确认我要注销我的OpenCompanion账号';
+const logout1 = $('#logout1'), logout2 = $('#logout2');
+const logoutInput = $('#logoutInput'), logoutHint = $('#logoutHint');
+
+$('#btnLogout').onclick = () => {
+  closeAll();
+  logout1.classList.add('on');
+};
+$('#logout1Cancel').onclick = () => logout1.classList.remove('on');
+
+$('#logout1Ok').onclick = () => {
+  logout1.classList.remove('on');
+  logoutInput.value = '';
+  logoutHint.style.display = 'none';
+  logout2.classList.add('on');
+  setTimeout(() => logoutInput.focus(), 120);
+};
+
+$('#logout2Cancel').onclick = () => logout2.classList.remove('on');
+
+logoutInput.addEventListener('input', () => {
+  logoutHint.style.display = 'none';
+});
+
+$('#logout2Ok').onclick = async () => {
+  const typed = logoutInput.value.trim();
+  if (typed !== LOGOUT_PHRASE) {
+    logoutHint.style.display = 'block';
+    logoutInput.focus();
+    return;
+  }
+  const btn = $('#logout2Ok');
+  btn.disabled = true; btn.textContent = '正在注销…';
+  try {
+    const r = await fetch('/api/account/delete', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({confirm: typed})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      try { localStorage.removeItem('oc_agreed_v1'); } catch(e) {}
+      document.documentElement.innerHTML =
+        '<body style="background:#fff;color:#1a1d23;font:15px -apple-system,PingFang SC,sans-serif;'
+        + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+        + 'height:100vh;margin:0;gap:14px">'
+        + '<div style="font-size:17px;font-weight:600">账号已注销</div>'
+        + '<div style="font-size:13px;color:#6b7280">本机数据已全部删除</div>'
+        + '<a href="/" style="margin-top:10px;color:#4b6ef5;font-size:13px">重新开始</a></body>';
+    } else {
+      btn.disabled = false; btn.textContent = '确认注销';
+      toast('注销失败：' + (d.message || ''));
+    }
+  } catch (e) {
+    btn.disabled = false; btn.textContent = '确认注销';
+    toast('网络错误：' + e.message);
+  }
+};
+
+[logout1, logout2].forEach(m => {
+  m.onclick = e => { if (e.target === m) m.classList.remove('on'); };
+});
+
 </script>
 </body>
 </html>

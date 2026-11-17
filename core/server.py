@@ -311,14 +311,16 @@ def scheduler_worker():
                 p = C.load_persona(pid) or {}
                 sched = p.get("schedule") or DEFAULT_SCHEDULE
                 for job in sched:
-                    key = f"{pid}|{job['at']}|{job['kind']}"
+                    key = f"{pid}|{job.get('at')}|{job.get('kind')}|{job.get('text','')}"
                     if st.get(key) == today:
                         continue
                     hh, mm = (int(x) for x in job["at"].split(":"))
                     if now.hour == hh and now.minute == mm:
                         st[key] = today
                         changed = True
-                        threading.Thread(target=_safe_fire, args=(pid, job["kind"]),
+                        threading.Thread(target=_safe_fire,
+                                         args=(pid, job.get("kind", "morning"),
+                                               job.get("text", "")),
                                          daemon=True).start()
             if changed:
                 # 清掉旧日期，文件不会无限长
@@ -329,9 +331,9 @@ def scheduler_worker():
         time.sleep(30)
 
 
-def _safe_fire(pid, kind):
+def _safe_fire(pid, kind, text=""):
     try:
-        _fire_greeting(pid, kind)
+        _fire_greeting(pid, kind, text)
         print(f"[sched] ✓ {pid} {kind}", flush=True)
     except Exception as e:
         print(f"[sched] ✗ {pid} {kind}: {e!r}", flush=True)
@@ -359,8 +361,13 @@ def api_set_schedule(pid):
         if not (0 <= hh < 24 and 0 <= mm < 60):
             continue
         kind = r.get("kind") if r.get("kind") in GREET_TEMPLATES else "morning"
-        clean.append({"at": f"{hh:02d}:{mm:02d}", "kind": kind,
-                      "name": r.get("name") or GREET_TEMPLATES[kind][:2]})
+        text = (r.get("text") or "").strip()
+        if len(text) > 500:
+            text = text[:500]
+        item = {"at": f"{hh:02d}:{mm:02d}", "kind": kind, "text": text}
+        if r.get("name"):
+            item["name"] = r["name"]
+        clean.append(item)
     p = C.load_persona(pid)
     if not p:
         return jsonify({"ok": False, "message": "角色不存在"}), 404
@@ -457,6 +464,57 @@ def api_persona_update(pid):
         p["persona"] = data["persona"]
     C.save_persona(p)
     return jsonify({"ok": True})
+
+
+# ── 版本与关于 ──────────────────────────────────────
+APP_VERSION = "0.1.0-beta"
+APP_NAME = "OpenCompanion"
+DEVELOPER = "CollinsLiu"
+STUDIO = "Benzene AI Studio"
+FEEDBACK_EMAIL = "collinsliu9@gmail.com"
+
+
+@app.get("/api/about")
+def api_about():
+    return jsonify({
+        "name": APP_NAME,
+        "version": APP_VERSION,
+        "developer": DEVELOPER,
+        "studio": STUDIO,
+        "email": FEEDBACK_EMAIL,
+    })
+
+
+@app.post("/api/account/delete")
+def api_account_delete():
+    """注销：删除本地全部数据（API 配置、人设、头像、对话、提醒）。
+
+    这是不可逆操作，前端会做两道确认后才调用。
+    """
+    import shutil
+    confirm_text = ((request.get_json(force=True) or {}).get("confirm") or "").strip()
+    expected = "我已确认我要注销我的OpenCompanion账号"
+    if confirm_text != expected:
+        return jsonify({"ok": False, "message": "确认文字不正确"}), 400
+
+    removed = []
+    try:
+        for child in C.DATA_DIR.iterdir():
+            # 保留 server.log 与 pid，避免把正在写的日志删掉
+            if child.name in ("server.log", "server.pid"):
+                continue
+            if child.is_dir():
+                shutil.rmtree(child, ignore_errors=True)
+            else:
+                child.unlink(missing_ok=True)
+            removed.append(child.name)
+        # 重建必需目录
+        C.PERSONA_DIR.mkdir(exist_ok=True)
+        C.AVATAR_DIR.mkdir(exist_ok=True)
+    except Exception as e:
+        return jsonify({"ok": False, "message": f"删除失败：{e}"}), 500
+
+    return jsonify({"ok": True, "removed": removed})
 
 
 @app.get("/healthz")
