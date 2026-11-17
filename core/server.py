@@ -265,14 +265,23 @@ def _save_state(st):
     C._write_json(_sched_state_file(), st)
 
 
-def _fire_greeting(pid, kind):
-    """生成并记录一次问候。注意：问候是通知，**不写入对话历史**。"""
+def _fire_greeting(pid, kind, custom=""):
+    """生成并记录一次问候。注意：问候是通知，**不写入对话历史**。
+
+    支持两种模式：
+      1. 预设 kind（morning/noon/dinner/night）
+      2. 用户自定义内容 custom —— 例如「提醒我喝水」「问我今天有没有好好吃饭」
+    """
     p = C.load_persona(pid)
     if not p:
         return
     cfg = C.load_config()
-    instr = GREET_TEMPLATES.get(kind, GREET_TEMPLATES["morning"])
-    instr += " 一句话即可，不要用列表，只输出问候本身。"
+    if (custom or "").strip():
+        instr = (f"请以你的身份，围绕这个主题主动发一条消息给对方：{custom.strip()}\n"
+                 "只说一条，语气自然，像平时聊天那样，不要用列表，不要解释你在做什么。")
+    else:
+        instr = GREET_TEMPLATES.get(kind, GREET_TEMPLATES["morning"])
+        instr += " 一句话即可，不要用列表，只输出问候本身。"
     msgs = [
         {"role": "system", "content": C._build_system_prompt(p)},
         {"role": "user", "content": "[系统指令，不是用户消息] " + instr},
@@ -280,7 +289,7 @@ def _fire_greeting(pid, kind):
     reply = C.chat_completion(msgs, cfg=cfg, temperature=0.95, max_tokens=200)
     # 存到独立的 greetings.log，不进 history
     with open(C.DATA_DIR / "greetings.log", "a", encoding="utf-8") as f:
-        f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S}\t{pid}\t{kind}\t{reply}\n")
+        f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S}\t{pid}\t{kind}\t{custom or ''}\t{reply}\n")
     try:
         from notify import push  # 可选推送模块
         push(f"{p.get('name','伴侣')}", reply)

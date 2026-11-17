@@ -128,7 +128,9 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
        display:flex;flex-direction:column;transform:translateX(102%);
        transition:transform .26s cubic-bezier(.3,.9,.4,1);visibility:hidden}
 .sheet.on{transform:translateX(0);visibility:visible}
-.sheet.maskSheet{background:rgba(15,20,30,.4);justify-content:flex-end}
+.sheet.maskSheet{background:rgba(15,20,30,.45);display:none;
+                 align-items:flex-end;justify-content:center;padding:0}
+.sheet.maskSheet.on{display:flex;transform:none;visibility:visible}
 .sheetHd{padding:calc(14px + env(safe-area-inset-top)) 18px 14px;border-bottom:1px solid var(--line);
          display:flex;align-items:center;justify-content:space-between;background:#fafbfc}
 .sheetHd h3{margin:0;font-size:16px}
@@ -165,6 +167,35 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
        display:flex;align-items:center;justify-content:center;color:#9aa3b2;font-size:17px;flex-shrink:0}
 .pitem .pnm{font-weight:600;font-size:14px}
 .pitem .pmeta{font-size:11px;color:var(--dim)}
+.chip{padding:7px 14px;border-radius:20px;border:1px solid var(--line);
+      background:#f7f8fa;color:#4a505a;font-size:13px;cursor:pointer;user-select:none}
+.chip:active{background:#eef2ff;border-color:var(--accent);color:var(--accent)}
+.gitem{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;
+       border:1px solid var(--line);margin-bottom:8px}
+.gitem .gt{font-weight:600;font-size:15px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.gitem .gc{flex:1;font-size:12.5px;color:var(--dim);overflow:hidden;
+           text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.gitem .gdel{padding:6px 10px;border-radius:8px;border:1px solid #f0c4c4;background:#fff;
+             color:#d93025;font-size:12px;cursor:pointer;flex-shrink:0}
+
+/* 问候弹框：内容自适应高度，底部弹出 */
+#greetDialog .box{background:#fff;border-radius:18px 18px 0 0;width:100%;
+                  max-height:88vh;display:flex;flex-direction:column;
+                  padding-bottom:env(safe-area-inset-bottom)}
+#greetDialog .ph2{padding:16px 18px;border-bottom:1px solid var(--line);
+                  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#greetDialog .ph2 h3{margin:0;font-size:16px}
+#greetDialog .body{overflow-y:auto;padding:16px 18px}
+#greetDialog label{display:block;font-size:12px;color:var(--dim);margin:0 0 6px}
+#greetDialog .ft{padding:0 18px 18px;flex-shrink:0}
+#greetDialog input[type=time]{width:100%;padding:13px;border-radius:10px;
+      border:1px solid var(--line);background:#f7f8fa;color:var(--fg);font:inherit}
+#greetDialog textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+      background:#f7f8fa;color:var(--fg);font:inherit;resize:vertical;line-height:1.7}
+#greetDialog .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+/* 人物列表抽屉也修一下 */
+#plistSheet{display:none;align-items:flex-end}
+#plistSheet.on{display:flex}
 </style>
 </head>
 <body>
@@ -231,12 +262,17 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
   <h2>它是个什么样的人</h2>
   <div class="sub">用大白话写，AI 会帮你写成完整人设</div>
   <label>名字</label>
-  <input id="name" placeholder="小D">
+  <input id="name" placeholder="给它起个名字">
   <label>一句话描述</label>
   <textarea id="brief" placeholder="嘴硬心软的女大学生，会吐槽我但很关心我"></textarea>
   <button id="btn-refine">让 AI 写完整人设</button>
-  <button id="btn-back1" class="ghost">返回</button>
+  <button id="btn-back1" class="ghost">取消，返回</button>
   <div class="msg" id="m2"></div>
+  <div style="text-align:center;margin-top:22px">
+    <span id="btnQuit2" style="font-size:12.5px;color:var(--dim);text-decoration:underline;cursor:pointer">
+      退出创建
+    </span>
+  </div>
 </div>
 
 <!-- ③ 完善 -->
@@ -252,6 +288,11 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
   <button id="btn-save">完成</button>
   <button id="btn-again" class="ghost">重新生成</button>
   <div class="msg" id="m3"></div>
+  <div style="text-align:center;margin-top:22px">
+    <span id="btnQuit3" style="font-size:12.5px;color:var(--dim);text-decoration:underline;cursor:pointer">
+      退出创建
+    </span>
+  </div>
 </div>
 
 <!-- 列表 -->
@@ -303,6 +344,13 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
     </div>
 
     <div class="sblock">
+      <h4>定时问候</h4>
+      <div id="schedList"></div>
+      <button class="sbtn" id="btnAddGreet" style="margin-top:8px">＋ 添加一个问候</button>
+      <div class="hint">到点会自动发消息给你。需要允许通知和后台运行权限。</div>
+    </div>
+
+    <div class="sblock">
       <h4>对话记录</h4>
       <button class="sbtn" id="btnExport">导出对话（复制到剪贴板）</button>
       <button class="sbtn danger" id="btnClear">清除聊天记录</button>
@@ -312,6 +360,38 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
       <h4>删除</h4>
       <button class="sbtn danger" id="btnDelete">删除这个人物</button>
       <div class="hint">连同人设、头像、全部对话一起删除，不可恢复。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 自定义问候弹框 ══════ -->
+<div class="sheet maskSheet" id="greetDialog">
+  <div class="box">
+    <div class="ph2">
+      <h3 id="greetTitle">添加问候</h3>
+      <button class="xbtn" id="greetClose">✕</button>
+    </div>
+    <div class="body">
+      <label>时间</label>
+      <input type="time" id="greetTime" value="08:00">
+
+      <label style="margin-top:14px">问候内容</label>
+      <textarea id="greetText" rows="3"
+        placeholder="例如：提醒我喝水 / 问我今天有没有好好吃饭 / 催我早点睡"></textarea>
+      <div class="hint">写一句你想让它做的事，它会用人设的语气说出来。</div>
+
+      <label style="margin-top:14px">快捷选择</label>
+      <div class="chips">
+        <span class="chip" data-t="早上好，用你的方式跟我打招呼">早安</span>
+        <span class="chip" data-t="提醒我该吃午饭了">午饭</span>
+        <span class="chip" data-t="问我今天过得怎么样">下班</span>
+        <span class="chip" data-t="催我早点睡觉，别熬夜">晚安</span>
+        <span class="chip" data-t="提醒我喝水">喝水</span>
+      </div>
+    </div>
+    <div class="ft">
+      <button class="sbtn primary" id="greetSave">保存</button>
+      <button class="sbtn" id="greetCancel">取消</button>
     </div>
   </div>
 </div>
@@ -430,10 +510,34 @@ $('#btn-next1').onclick = () => {
   show('#s2');
 };
 
+/* ══════════ 新建伴侣入口 ══════════ */
+/**
+ * 已经有 API 配置时，新建伴侣不需要重填 API，直接进人设页。
+ * 只有首次使用（还没配过）才走第 1 步。
+ */
+function startNewPersona() {
+  $('#name').value = '';
+  $('#brief').value = '';
+  $('#persona').value = '';
+  if (cfg && cfg.api_key && cfg.base_url && cfg.model) {
+    show('#s2');
+  } else {
+    show('#s1');
+  }
+}
+
 /* ══════════ ② 打磨人设 ══════════ */
-const ARCH_PROMPT = `你是一位角色设计专家。请把用户的一句话描述扩写成完整人设文档，
-必须包含：## 身份与背景 / ## 性格特质 / ## 说话风格(含3句示例台词) / ## 相处方式 / ## 边界与禁区。
-要求：具体可执行，别堆形容词；直接输出文档，不要前言；全程中文。`;
+const ARCH_PROMPT = `你是一位角色设计专家。用户会给出一个角色名字和一句简短描述，
+请据此扩写成完整人设文档。
+
+必须包含：## 身份与背景 / ## 性格特质（每项配一句具体表现）/ ## 说话风格（含 3 句示例台词）
+/ ## 相处方式 / ## 边界与禁区。
+
+要求：
+- 角色名字必须使用用户给定的名字，不要自己另起；
+- 具体可执行，不要堆砌空泛形容词；
+- 直接输出文档本身，不要任何前言或解释；
+- 全程使用中文。`;
 
 $('#btn-refine').onclick = async () => {
   const brief = $('#brief').value.trim();
@@ -444,13 +548,27 @@ $('#btn-refine').onclick = async () => {
   b.disabled = true; b.textContent = 'AI 正在写…可能需要 1-2 分钟';
   const r = await aiCall([
     {role:'system', content: ARCH_PROMPT},
-    {role:'user', content: brief}
+    {role:'user', content: `角色名字：${name}\n简短描述：${brief}`}
   ], {temperature:0.85, maxTokens:2000});
   b.disabled = false; b.textContent = '让 AI 写完整人设';
   if (r.ok) { $('#persona').value = r.text; show('#s3'); tip($('#m3'), true, '已生成，可以直接修改'); }
   else tip($('#m2'), false, r.error);
 };
-$('#btn-back1').onclick = () => show('#s1');
+// 返回：已配过 API 就回列表，否则回上一步（填 API）
+$('#btn-back1').onclick = () => {
+  const configured = cfg && cfg.api_key && cfg.base_url && cfg.model;
+  if (configured && personas.length) { renderList(); show('#sList'); }
+  else if (configured) { show('#s1'); }
+  else { show('#s1'); }
+};
+
+// 退出创建：有伴侣就回列表，没有就回上一步
+const quitCreation = () => {
+  if (personas.length) { renderList(); show('#sList'); }
+  else { show('#s1'); }
+};
+$('#btnQuit2').onclick = quitCreation;
+$('#btnQuit3').onclick = quitCreation;
 $('#btn-again').onclick = () => { show('#s2'); $('#btn-refine').click(); };
 
 /* ══════════ ③ 保存角色 ══════════ */
@@ -520,7 +638,7 @@ function renderList() {
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-$('#btn-new').onclick = () => show('#s2');
+$('#btn-new').onclick = () => startNewPersona();
 
 /* ══════════ 聊天 ══════════ */
 let cur = null, busy = false;
@@ -589,6 +707,106 @@ $('#msg').addEventListener('keydown', e => {
 });
 
 
+
+/* ══════════ 定时问候 ══════════ */
+let editingGreetIdx = -1;
+
+function renderSchedule() {
+  const box = $('#schedList');
+  if (!cur) { box.innerHTML = ''; return; }
+  const rows = cur.schedule || [];
+  if (!rows.length) {
+    box.innerHTML = '<div class="hint">还没有设置问候</div>';
+    return;
+  }
+  box.innerHTML = '';
+  rows.forEach((r, i) => {
+    const d = document.createElement('div');
+    d.className = 'gitem';
+    d.innerHTML = `<div class="gt">${r.at}</div>
+                   <div class="gc">${esc(r.text || '')}</div>
+                   <button class="gdel">删</button>`;
+    d.querySelector('.gdel').onclick = () => {
+      cur.schedule = (cur.schedule || []).filter((_, j) => j !== i);
+      saveScheduleToStore();
+      renderSchedule();
+      syncNativeAlarms();
+      toast('已删除');
+    };
+    d.onclick = (ev) => {
+      if (ev.target.classList.contains('gdel')) return;
+      openGreetDialog(i);
+    };
+    box.appendChild(d);
+  });
+}
+
+function saveScheduleToStore() {
+  store.set('personas', personas);
+}
+
+function openGreetDialog(idx) {
+  editingGreetIdx = (idx === undefined || idx === null) ? -1 : idx;
+  const dlg = $('#greetDialog');
+  if (editingGreetIdx >= 0) {
+    const r = (cur.schedule || [])[editingGreetIdx];
+    $('#greetTitle').textContent = '修改问候';
+    $('#greetTime').value = r.at;
+    $('#greetText').value = r.text || '';
+  } else {
+    $('#greetTitle').textContent = '添加问候';
+    $('#greetTime').value = '08:00';
+    $('#greetText').value = '';
+  }
+  dlg.classList.add('on');
+}
+function closeGreetDialog() { $('#greetDialog').classList.remove('on'); }
+
+$('#btnAddGreet').onclick = () => openGreetDialog(-1);
+$('#greetClose').onclick = closeGreetDialog;
+$('#greetCancel').onclick = closeGreetDialog;
+
+// 快捷选择
+document.querySelectorAll('#greetDialog .chip').forEach(c => {
+  c.onclick = () => { $('#greetText').value = c.dataset.t; };
+});
+
+$('#greetSave').onclick = () => {
+  const at = $('#greetTime').value;
+  const text = $('#greetText').value.trim();
+  if (!at) { toast('请选择时间'); return; }
+  if (!text) { toast('请填写问候内容'); return; }
+  if (!cur.schedule) cur.schedule = [];
+  if (editingGreetIdx >= 0) {
+    cur.schedule[editingGreetIdx] = {at, text};
+  } else {
+    cur.schedule.push({at, text});
+  }
+  cur.schedule.sort((a, b) => a.at.localeCompare(b.at));
+  saveScheduleToStore();
+  renderSchedule();
+  syncNativeAlarms();
+  closeGreetDialog();
+  toast('已保存');
+};
+
+/**
+ * 把当前角色的定时问候同步给安卓原生层。
+ * 原生层用 AlarmManager 定时唤醒，App 不在前台也能弹通知。
+ */
+function syncNativeAlarms() {
+  if (!hasNative || !Native.scheduleAlarms) return;
+  try {
+    const payload = [];
+    personas.forEach(p => {
+      (p.schedule || []).forEach(g => {
+        payload.push({pid: p.id, name: p.name, at: g.at, text: g.text});
+      });
+    });
+    Native.scheduleAlarms(JSON.stringify(payload));
+  } catch(e) {}
+}
+
 /* ══════════ 设置面板 / 人物列表 ══════════ */
 const settingsEl = $('#settings');
 const plistSheet = $('#plistSheet');
@@ -598,6 +816,7 @@ function openSettings() {
   $('#setName').value = cur.name || '';
   $('#setBrief').value = cur.brief || '';
   $('#setPersona').value = cur.persona || '';
+  renderSchedule();
   $('#setAv').src = cur.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23f0f2f5'/%3E%3Ctext x='36' y='46' font-size='26' text-anchor='middle' fill='%239aa3b2'%3E%3F%3C/text%3E%3C/svg%3E";
   settingsEl.classList.add('on');
 }
@@ -621,7 +840,7 @@ function showPlist() {
   box.classList.add('on');
 
   box.querySelector('#closePlist').onclick = () => box.classList.remove('on');
-  box.querySelector('#plistNew').onclick = () => { box.classList.remove('on'); show('#s2'); };
+  box.querySelector('#plistNew').onclick = () => { box.classList.remove('on'); startNewPersona(); };
   box.querySelectorAll('.pitem').forEach(el => {
     el.onclick = () => {
       box.classList.remove('on');
@@ -800,6 +1019,7 @@ async function runSplash() {
   const bz = $('#bzMark'), bzWord = $('#bzWord');
 
   if (agreedAlready()) {
+    try { if (hasNative && Native.requestPermissions) Native.requestPermissions(); } catch(e) {}
     // 老用户：短动画
     s1.classList.add('show');
     icon.classList.add('in'); zh.classList.add('in'); en.classList.add('in');
@@ -894,6 +1114,11 @@ btnAgree.onclick = () => {
   if (!agreeChk.checked) { warnEl.classList.add('on'); return; }
   setAgreed();
   consentEl.classList.remove('on');
+
+  // 安卓端：申请通知、相册、后台运行权限
+  // 放在这里是因为用户刚读完协议、最清楚为什么要这些权限
+  try { if (hasNative && Native.requestPermissions) Native.requestPermissions(); } catch(e) {}
+
   enterApp();
 };
 $('#btnDecline').onclick = () => {

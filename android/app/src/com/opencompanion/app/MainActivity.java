@@ -1,12 +1,16 @@
 package com.opencompanion.app;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -14,6 +18,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONObject;
 
@@ -76,6 +83,12 @@ public class MainActivity extends Activity {
 
         web.addJavascriptInterface(new Bridge(), "Native");
         web.loadUrl("file:///android_asset/index.html");
+
+        // 恢复上次保存的定时问候闹钟（App 重启后仍然有效）
+        try {
+            SharedPreferences sp = prefs();
+            AlarmReceiver.rescheduleAll(this, sp.getString("alarms", "[]"));
+        } catch (Exception ignored) { }
     }
 
     @Override
@@ -218,6 +231,21 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void requestPermissions() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { requestAppPermissions(); }
+            });
+        }
+
+        /** 网页增删改定时问候后调用，同步给 AlarmManager。 */
+        @JavascriptInterface
+        public void scheduleAlarms(String json) {
+            prefs().edit().putString("alarms", json).apply();
+            AlarmReceiver.rescheduleAll(MainActivity.this, json);
+        }
+
+        @JavascriptInterface
         public String getAgreed() {
             return prefs().getBoolean("agreed", false) ? "1" : "0";
         }
@@ -247,6 +275,75 @@ public class MainActivity extends Activity {
                     Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+    }
+
+    // ══════ 权限申请 ══════
+    private static final int REQ_PERMS = 2001;
+
+    /** 申请通知 + 相册权限。由网页在需要时调用。 */
+    private void requestAppPermissions() {
+        List<String> need = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= 33) {   // Android 13+
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                need.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
+                    != PackageManager.PERMISSION_GRANTED) {
+                need.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+        } else {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                need.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        }
+
+        if (!need.isEmpty()) {
+            requestPermissions(need.toArray(new String[0]), REQ_PERMS);
+        }
+        // 顺带申请「精确闹钟」与「忽略电池优化」，这两个要去系统设置页
+        requestExactAlarmAndBattery();
+    }
+
+    /** 精确闹钟（Android 12+）需要单独授权，否则定时可能不准。 */
+    private void requestExactAlarmAndBattery() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                android.app.AlarmManager am =
+                        (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+                if (am != null && !am.canScheduleExactAlarms()) {
+                    Intent i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                    i.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(i);
+                }
+            }
+        } catch (Exception ignored) { }
+
+        try {
+            // 忽略电池优化：不做的话系统会在息屏后杀掉后台，问候就发不出来
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                android.os.PowerManager pm =
+                        (android.os.PowerManager) getSystemService(POWER_SERVICE);
+                if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                    Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    i.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(i);
+                }
+            }
+        } catch (Exception ignored) { }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int req, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(req, perms, results);
+        if (req == REQ_PERMS) {
+            int ok = 0;
+            for (int r : results) if (r == PackageManager.PERMISSION_GRANTED) ok++;
+            Toast.makeText(this, "已获得 " + ok + "/" + perms.length + " 项权限",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
