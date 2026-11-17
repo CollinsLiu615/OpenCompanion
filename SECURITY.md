@@ -25,7 +25,12 @@ apksigner verify --print-certs OpenCompanion.apk
 
 ## 数据处理
 
-**不收集任何用户数据。** 本软件没有服务器，全部内容存于本机。
+**不收集任何用户数据，没有埋点，没有硬编码服务器。**
+
+- 无第三方统计 SDK（无 Firebase / 友盟 / Bugly / Sentry 等）
+- 安卓端源码中**不存在任何硬编码的服务端地址**
+- 网络请求只发往一处：你自己填写的 `base_url`
+- 除你配置的 AI 接口外，本软件不会主动连接任何服务器
 
 ### API Key 存储
 
@@ -33,8 +38,11 @@ apksigner verify --print-certs OpenCompanion.apk
   App 本身无法导出
 - API Key、人设、聊天记录均以 **AES/GCM/NoPadding** 加密后写入本地
 - `allowBackup="false"`，禁止通过 adb backup 或云端备份导出
-- **局限**：能防住"直接读取文件"，防不住"设备已 root 且攻击者能在 App 进程内执行代码"。
-  手机上不存在绝对安全，这是行业通用做法。
+- **局限（必须明确）**：Keystore 加密挡的是「把文件拷走直接读」这一种攻击。
+  它挡不住：
+  - 已 root 且能在本 App 进程内执行代码的攻击者（可直接调用解密接口拿到明文）
+  - 通过 Xposed/Frida 等 hook 运行时内存的攻击
+  手机上不存在绝对安全，这是行业通用做法。不要在不可信的设备上保存高价值 Key。
 
 ### 网络传输
 
@@ -57,12 +65,33 @@ apksigner verify --print-certs OpenCompanion.apk
 | :--- | :--- |
 | INTERNET | 调用你自己配置的 AI 接口 |
 | POST_NOTIFICATIONS | 定时问候弹出通知 |
-| READ_MEDIA_IMAGES | 选择头像（仅读取你主动选的那张） |
+| VIBRATE | 通知震动 |
+| READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE | 选择头像（仅读取你主动选的那张；后者限 API ≤ 32） |
 | SCHEDULE_EXACT_ALARM / USE_EXACT_ALARM | 让问候准点触发 |
 | RECEIVE_BOOT_COMPLETED | 重启后重建闹钟 |
 | REQUEST_IGNORE_BATTERY_OPTIMIZATIONS | 防止息屏后被杀导致问候不发 |
 
-**未申请**：定位、通讯录、短信、电话、摄像头、麦克风。
+**未申请**：定位、通讯录、短信、电话、摄像头、麦克风、读取已安装应用列表。
+
+其余未使用的权限（`ACCESS_NETWORK_STATE`、`WAKE_LOCK`、`FOREGROUND_SERVICE*`）
+已在 v0.1.0-beta (versionCode 4) 中移除，遵循最小权限原则。
+
+## 关于定时通知
+
+**通知内容是你自己填写的文字，不是 AI 生成。**
+
+- 到点由系统 `AlarmManager` 触发，直接弹出你设定的文本
+- **不联网、不调用 AI、不经过任何服务器**
+- 本版本不提供任何推送服务（无 Bark / ntfy / FCM 等远程推送）
+
+## 关于签名与升级
+
+- 签名证书固定存放于 `android/signing/release.keystore`，已加入 `.gitignore`
+- 每次构建使用同一证书，**连续两次打包指纹完全一致**（已验证）
+- 早期版本曾把 keystore 生成在 `build/` 目录，每次清理重建都会换新证书，
+  会导致已安装用户无法覆盖升级、甚至数据丢失。该问题已修复。
+
+> ⚠️ **证书丢失 = 永远无法升级**。请备份 `release.keystore` 并妥善保管密码。
 
 ## 内容责任
 
