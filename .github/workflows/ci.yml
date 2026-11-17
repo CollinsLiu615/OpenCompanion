@@ -7,21 +7,6 @@ on:
     branches: [ main ]
 
 jobs:
-  python:
-    name: Python 语法与依赖
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: 安装依赖
-        run: pip install -r requirements.txt
-      - name: 语法检查
-        run: python -m compileall -q core
-      - name: 导入检查
-        run: python -c "import sys; sys.path.insert(0,'core'); import config, server, notify; print('导入正常')"
-
   security-scan:
     name: 隐私与安全扫描
     runs-on: ubuntu-latest

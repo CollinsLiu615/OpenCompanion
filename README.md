@@ -8,7 +8,7 @@
 
 填上你自己的 API，用一句话描述想要的角色，AI 帮你把设定打磨成完整人设，然后就可以聊天了。
 
-安卓离线 App · 手机网页版 · 数据全部留在本机
+安卓离线 App · 数据全部留在本机
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-lightgrey.svg)](#安装)
@@ -55,37 +55,12 @@ OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自�
 
 ## 安装
 
-### 方式一：安卓 App（完全离线，推荐）
+### 安卓 App（完全离线）
 
 1. 到 [Releases](../../releases) 下载最新 `OpenCompanion.apk`
 2. 传到手机安装（需允许「安装未知来源应用」）
 
 首次启动需授予通知、相册、后台运行权限，用于定时问候与选择头像。
-
-### 方式二：手机网页版（iPhone 也能用）
-
-需要一台电脑始终开机作为服务端。
-
-```bash
-git clone https://github.com/CollinsLiu615/OpenCompanion.git
-cd OpenCompanion
-pip install -r requirements.txt
-./desktop/scripts/start.sh
-```
-
-启动后会打印两个地址：
-
-```
-电脑上打开:  http://127.0.0.1:8800
-手机上打开:  http://<你的局域网IP>:8800
-```
-
-手机与电脑连同一个 WiFi，浏览器打开第二个地址，
-再点「添加到主屏幕」，桌面上就有图标了。
-
-> 停止服务：`./desktop/scripts/stop.sh`
-
----
 
 ## 使用
 
@@ -127,8 +102,6 @@ pip install -r requirements.txt
 
 ## 自己构建
 
-### 安卓
-
 ```bash
 cd android
 ./make-keystore.sh    # 首次构建：生成签名证书
@@ -144,12 +117,6 @@ cd android
 > ⚠️ 签名证书一旦丢失，已安装用户将**永远无法升级**（签名不一致系统会拒绝覆盖）。
 > 请务必备份 `android/signing/release.keystore`。
 
-### 网页版
-
-无需构建，`start.sh` 会自己检查依赖并启动。
-
----
-
 ## 项目结构
 
 ```
@@ -160,12 +127,6 @@ OpenCompanion/
 │   ├── assets/               离线界面（HTML/JS）
 │   ├── build.sh              无 Gradle 打包脚本
 │   └── make-keystore.sh      生成签名证书
-├── core/                     网页版后端
-│   ├── config.py             配置、人设、AI 调用
-│   ├── server.py             Flask 路由 + 进程内定时排程
-│   └── notify.py             可选推送（Bark / Webhook）
-├── templates/                网页版界面
-├── desktop/scripts/          网页版启停脚本
 ├── docs/
 │   ├── 用户协议.md            协议全文
 │   ├── 快速上手.md            新手引导

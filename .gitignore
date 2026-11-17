@@ -12,3 +12,11 @@ android/*.apk.idsig
 android/*.keystore
 .DS_Store
 android/signing/*.keystore
+
+# ── 电脑端（不公开）──────────────────────────
+# 本仓库只包含安卓端。电脑端网页服务为内部工具，不纳入开源。
+core/
+templates/
+static/
+desktop/
+requirements.txt

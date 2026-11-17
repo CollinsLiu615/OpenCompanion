@@ -25,13 +25,6 @@ cd android
 
 需要 JDK 21、Android SDK（build-tools **36.1.0**，更低版本的 d8 有 bug）。
 
-### 网页版
-
-```bash
-pip install -r requirements.txt
-./desktop/scripts/start.sh
-```
-
 ## 提交 PR
 
 - 一个 PR 只做一件事
