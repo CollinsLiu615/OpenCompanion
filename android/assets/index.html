@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>OpenCompanion</title>
 <style>
-:root{--bg:#0f1115;--card:#181c23;--line:#2a3038;--fg:#e6e8ec;--dim:#8b93a1;--accent:#6c8cff;--ok:#3ecf8e;--err:#ff6b6b}
+:root{--bg:#ffffff;--card:#ffffff;--line:#e3e6eb;--fg:#1a1d23;--dim:#6b7280;--accent:#4b6ef5;--ok:#12a15c;--err:#d93025}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
 body{font:15px/1.7 -apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--fg);
@@ -57,22 +57,127 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
    display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:19px;flex-shrink:0}
 .p .nm{font-weight:600}
 .p .meta{font-size:12px;color:var(--dim)}
+
+/* ══════ 启动动画 ══════ */
+#splash{position:fixed;inset:0;background:#fff;z-index:1000;display:flex;
+        align-items:center;justify-content:center;cursor:pointer}
+.stage{position:absolute;inset:0;display:flex;flex-direction:column;
+       align-items:center;justify-content:center;gap:20px;opacity:0;
+       transition:opacity .55s ease;padding:24px}
+.stage.show{opacity:1}
+#blackout{position:fixed;inset:0;background:#eef0f3;z-index:1010;opacity:0;
+          pointer-events:none;transition:opacity .38s ease}
+#blackout.on{opacity:1}
+#brandIcon{width:150px;height:150px;image-rendering:pixelated;
+           transform:scale(.72);opacity:0;transition:all .7s cubic-bezier(.2,.9,.3,1.2)}
+#brandIcon.in{transform:scale(1);opacity:1}
+.brandName{opacity:0;transform:translateY(14px);transition:all .6s ease}
+.brandName.in{opacity:1;transform:translateY(0)}
+#zh{width:min(250px,60vw);height:auto}
+#en{width:min(360px,82vw);height:auto}
+#bzMark{width:190px;height:190px;opacity:0;transform:scale(.86);
+        transition:all .85s cubic-bezier(.2,.9,.3,1.1)}
+#bzMark.in{opacity:1;transform:scale(1)}
+#bzWord{margin-top:24px;font-size:18px;letter-spacing:.16em;color:#2b2f38;
+        font-weight:300;opacity:0;transition:opacity .8s ease}
+#bzWord.in{opacity:1}
+#skipHint{position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));
+          font-size:12px;color:#b9bfc9;opacity:0;transition:opacity .6s}
+#skipHint.in{opacity:1}
+
+/* ══════ 协议门 ══════ */
+#consent{position:fixed;inset:0;background:#fff;z-index:1020;display:none;
+         align-items:center;justify-content:center;padding:14px}
+#consent.on{display:flex}
+#consent .box{width:100%;max-height:calc(100vh - 28px);background:#fff;
+              border:1px solid var(--line);border-radius:16px;display:flex;
+              flex-direction:column;overflow:hidden}
+#consent .hd{padding:18px 18px 12px;border-bottom:1px solid var(--line);background:#fafbfc}
+#consent .hd h2{margin:0 0 4px;font-size:17px}
+#consent .hd p{margin:0;font-size:11px;color:var(--dim)}
+#consent .bd{flex:1;overflow-y:auto;padding:14px 18px;font-size:13px;line-height:1.85;color:#3a4048}
+#consent .bd h3{font-size:13.5px;margin:16px 0 6px;color:#14171c}
+#consent .bd p{margin:0 0 8px}
+#consent .bd strong{color:#000}
+#consent .chk{display:flex;gap:9px;align-items:flex-start;padding:12px 18px 0;
+              font-size:13px;color:#3a4048}
+#consent .chk input{margin-top:3px;flex-shrink:0;width:18px;height:18px;accent-color:var(--accent)}
+#consent .warn{margin:8px 18px 0;padding:8px 11px;border-radius:8px;font-size:12px;
+               background:#fdecec;color:#c62828;display:none}
+#consent .warn.on{display:block}
+#consent .ft{padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+             border-top:1px solid var(--line);display:flex;gap:10px}
+#consent button{flex:1;padding:13px;border-radius:10px;border:none;font:inherit;
+                font-weight:600;cursor:pointer;margin:0}
+#btnAgree{background:var(--accent);color:#fff}
+#btnAgree:disabled{opacity:.45}
+#btnDecline{background:#f4f5f7;border:1px solid var(--line);color:#4a505a}
+
+/* ══════ 退出态 ══════ */
+#bye{position:fixed;inset:0;background:#fff;z-index:1030;display:none;
+     align-items:center;justify-content:center;flex-direction:column;gap:14px;
+     padding:24px;text-align:center}
+#bye.on{display:flex}
+#bye h2{margin:0;font-size:18px;font-weight:500}
+#bye p{margin:0;font-size:14px;color:var(--dim);max-width:360px;line-height:1.8}
+#bye .again{margin-top:8px;padding:11px 26px;border-radius:10px;border:1px solid var(--line);
+            background:#f4f5f7;color:var(--fg);font:inherit;cursor:pointer}
 </style>
 </head>
 <body>
 
+<!-- ══════ 启动动画 ══════ -->
+<div id="splash">
+  <div class="stage" id="stage1">
+    <img id="brandIcon" src="brand/icon-480.png" alt="">
+    <img id="zh" class="brandName" src="brand/name_zh.png" alt="">
+    <img id="en" class="brandName" src="brand/name_en.png" alt="">
+  </div>
+  <div class="stage" id="stage2">
+    <img id="bzMark" src="brand/benzene.png" alt="">
+    <div id="bzWord">Benzene AI Studio</div>
+  </div>
+  <div id="skipHint">点击跳过</div>
+</div>
+<div id="blackout"></div>
+
+<!-- ══════ 协议门 ══════ -->
+<div id="consent">
+  <div class="box">
+    <div class="hd">
+      <h2>用户协议与隐私政策</h2>
+      <p>版本 v1.0 · 生效日期 2026 年 11 月 17 日</p>
+    </div>
+    <div class="bd" id="consentBody"></div>
+    <div class="chk">
+      <input type="checkbox" id="agreeChk">
+      <label for="agreeChk">我已阅读并同意《用户协议与隐私政策》的全部条款</label>
+    </div>
+    <div class="warn" id="warn">请先勾选上方选项，才能继续。</div>
+    <div class="ft">
+      <button id="btnDecline">不同意，退出</button>
+      <button id="btnAgree" disabled>我已阅读并同意</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 退出态 ══════ -->
+<div id="bye">
+  <h2>已停止使用</h2>
+  <p>您未同意《用户协议与隐私政策》，本软件无法继续使用。</p>
+  <button class="again" id="btnAgain">重新阅读协议</button>
+</div>
+
 <!-- ① 配置 -->
 <div class="screen on" id="s1">
   <h2>连接 AI</h2>
-  <div class="sub">填一次就好，之后可以改</div>
-  <label>服务商</label>
-  <select id="preset"></select>
-  <label>接口地址</label>
-  <input id="base_url" placeholder="https://api.openai.com/v1" autocapitalize=off autocorrect=off>
+  <div class="sub">本软件不自带 AI 能力，需填写你自己的接口信息。去服务商后台就能找到这三项。</div>
+  <label>接口地址（base_url）</label>
+  <input id="base_url" placeholder="https://你的服务商域名/v1" autocapitalize=off autocorrect=off spellcheck=false>
   <label>API Key</label>
-  <input id="api_key" type="password" placeholder="sk-..." autocapitalize=off autocorrect=off>
+  <input id="api_key" type="password" placeholder="粘贴你的 API Key" autocapitalize=off autocorrect=off spellcheck=false>
   <label>模型名</label>
-  <input id="model" placeholder="gpt-4o-mini" autocapitalize=off autocorrect=off>
+  <input id="model" placeholder="你的服务商提供的模型名" autocapitalize=off autocorrect=off spellcheck=false>
   <button id="btn-test" class="ghost">测试连接</button>
   <button id="btn-next1">下一步</button>
   <div class="msg" id="m1"></div>
@@ -132,15 +237,7 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 /* ══════════ 基础设施 ══════════ */
 const $ = s => document.querySelector(s);
 const hasNative = typeof Native !== 'undefined';
-const PRESETS = [
-  {id:'openai',   name:'OpenAI',          base_url:'https://api.openai.com/v1',      model:'gpt-4o-mini'},
-  {id:'deepseek', name:'DeepSeek 深度求索', base_url:'https://api.deepseek.com/v1',    model:'deepseek-chat'},
-  {id:'moonshot', name:'Moonshot 月之暗面', base_url:'https://api.moonshot.cn/v1',     model:'moonshot-v1-8k'},
-  {id:'zhipu',    name:'智谱 GLM',         base_url:'https://open.bigmodel.cn/api/paas/v4', model:'glm-4-flash'},
-  {id:'dashscope',name:'通义千问',          base_url:'https://dashscope.aliyuncs.com/compatible-mode/v1', model:'qwen-plus'},
-  {id:'ecnu',     name:'华东师大 ECNU',     base_url:'https://chat.ecnu.edu.cn/open/api/v1', model:'ecnu-plus'},
-  {id:'custom',   name:'自定义 / 其他',     base_url:'',                               model:''}
-];
+const PRESETS = [];  // 不预设任何服务商，全部由用户填写
 
 // 存储：优先用原生 SharedPreferences（安卓），否则 localStorage（浏览器预览）
 const store = {
@@ -213,16 +310,7 @@ function aiCall(messages, opts) {
 }
 
 /* ══════════ ① 配置 ══════════ */
-const selPreset = $('#preset');
-PRESETS.forEach((p, i) => {
-  const o = document.createElement('option');
-  o.value = p.id; o.textContent = p.name;
-  selPreset.appendChild(o);
-});
-selPreset.onchange = () => {
-  const p = PRESETS.find(x => x.id === selPreset.value);
-  if (p) { $('#base_url').value = p.base_url; $('#model').value = p.model; }
-};
+// 不预设任何服务商，一切由用户填写
 if (cfg.base_url) $('#base_url').value = cfg.base_url;
 if (cfg.model) $('#model').value = cfg.model;
 if (cfg.api_key) $('#api_key').placeholder = '已保存，留空不修改';
@@ -424,16 +512,153 @@ window.OCBack = () => {
   return false;
 };
 
-/* ══════════ 启动路由 ══════════ */
-(function boot() {
-  selPreset.selectedIndex = 0;
-  selPreset.onchange();
-  if (cfg.base_url) $('#base_url').value = cfg.base_url;
-  if (cfg.model) $('#model').value = cfg.model;
+/* ══════════ 协议存储 ══════════ */
+function agreedAlready() {
+  try {
+    if (hasNative && Native.getAgreed) return Native.getAgreed() === '1';
+    return localStorage.getItem('oc_agreed_v1') === '1';
+  } catch(e) { return false; }
+}
+function setAgreed() {
+  try {
+    if (hasNative && Native.setAgreed) Native.setAgreed('1');
+    else localStorage.setItem('oc_agreed_v1', '1');
+  } catch(e) {}
+}
+
+/* ══════════ 启动动画 ══════════ */
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const blackout = $('#blackout');
+async function screenOff(ms) {
+  blackout.classList.add('on');
+  await wait(ms);
+  blackout.classList.remove('on');
+  await wait(110);
+}
+let splashDone = false;
+
+// 跳到真正的主界面（协议通过之后）
+function enterApp() {
   if (!cfg.api_key) { show('#s1'); return; }
   if (!personas.length) { show('#s2'); return; }
   renderList(); show('#sList');
-})();
+}
+
+async function runSplash() {
+  const sp = $('#splash');
+  const s1 = $('#stage1'), s2 = $('#stage2');
+  const icon = $('#brandIcon'), zh = $('#zh'), en = $('#en');
+  const bz = $('#bzMark'), bzWord = $('#bzWord');
+
+  if (agreedAlready()) {
+    // 老用户：短动画
+    s1.classList.add('show');
+    icon.classList.add('in'); zh.classList.add('in'); en.classList.add('in');
+    await wait(800);
+    sp.style.display = 'none';
+    splashDone = true;
+    enterApp();
+    return;
+  }
+
+  // 第一屏：图标 → 中文 → 英文
+  s1.classList.add('show');
+  await wait(150); icon.classList.add('in');
+  await wait(680); zh.classList.add('in');
+  await wait(500); en.classList.add('in');
+  await wait(1450);
+  await screenOff(540);
+
+  // 第二屏
+  s1.classList.remove('show');
+  s2.classList.add('show');
+  await wait(190); bz.classList.add('in');
+  await wait(780); bzWord.classList.add('in');
+  await wait(1850);
+  await screenOff(540);
+
+  s2.classList.remove('show');
+  await wait(170);
+  sp.style.display = 'none';
+  splashDone = true;
+  showConsent();
+}
+
+$('#splash').onclick = () => {
+  if (splashDone) return;
+  splashDone = true;
+  blackout.classList.remove('on');
+  $('#splash').style.display = 'none';
+  showConsent();
+};
+setTimeout(() => { const h = $('#skipHint'); if (h) h.classList.add('in'); }, 1200);
+
+/* ══════════ 协议门 ══════════ */
+const consentEl = $('#consent');
+const agreeChk = $('#agreeChk');
+const btnAgree = $('#btnAgree');
+const warnEl = $('#warn');
+const byeEl = $('#bye');
+
+// 协议正文（与电脑端一致的精简版，完整版见 docs/用户协议.md）
+const AGREEMENT_HTML = `
+<p><strong>请您务必审慎阅读、充分理解本协议各条款内容，特别是免除或限制责任的条款。</strong></p>
+<h3>一、协议的性质与接受</h3>
+<p>本协议是您与 OpenCompanion 开发者之间就使用本软件订立的具有法律约束力的协议。您点击"我已阅读并同意"，即表示已完整阅读并同意接受全部条款。<strong>如不同意，请勿点击同意并立即停止使用。</strong>未满 18 周岁的，请在法定监护人陪同下阅读并取得同意后使用。</p>
+<h3>二、本软件不提供人工智能能力</h3>
+<p><strong>本软件自身不提供任何人工智能推理能力。</strong>全部对话与内容生成均依赖您自行配置的第三方 AI 服务。API 密钥系您与该第三方的独立法律关系，<strong>由此产生的全部费用由您自行承担</strong>，密钥泄露或超额扣费的风险亦由您承担。本软件不对第三方服务的可用性、稳定性及输出内容的准确性作任何保证。</p>
+<h3>三、您的责任与行为规范</h3>
+<p>您对所创建的角色人设、上传的头像及输入的对话内容负全部责任。承诺不制作、传播含有下列内容的信息：反对宪法基本原则的；危害国家安全、泄露国家秘密、颠覆国家政权的；损害国家荣誉和利益的；煽动民族仇恨、民族歧视的；破坏国家宗教政策、宣扬邪教和封建迷信的；散布谣言、扰乱社会秩序的；淫秽、色情、赌博、暴力、恐怖或教唆犯罪的；侮辱诽谤他人、侵害他人合法权益的；法律行政法规禁止的其他内容。</p>
+<p>您承诺不：未经他人同意擅自使用他人姓名、肖像、声音创建角色；冒充他人或国家机关工作人员；侵犯他人知识产权、隐私权、名誉权、肖像权；利用本软件实施诈骗、骚扰、跟踪等侵害他人权益的行为。<strong>若角色涉及真实人物，您应确保已取得该人物的明确授权，否则全部法律责任由您自行承担。</strong></p>
+<h3>四、AI 生成内容的特别声明</h3>
+<p><strong>AI 生成内容由算法自动产生，不代表开发者观点，且可能存在错误、偏差或不适当之处。</strong>您应自行甄别，不应作为医疗、法律、金融、投资等专业决策依据。AI 对话另一方并非真实人类，不应将其情感依赖替代现实社会交往；如感心理不适，请及时寻求专业帮助。</p>
+<h3>五、数据存储与隐私</h3>
+<p><strong>本软件采用本地存储架构。</strong>除下述情形外，您的全部内容仅存储于本设备，开发者不收集、不上传、不备份、不访问您的任何用户内容，不出售不出租不交换您的个人信息。下列情形数据可能经第三方传输：<strong>（1）调用第三方 AI 服务时，人设与对话内容将被发送至您配置的第三方；（2）您主动配置推送服务时，问候内容将发送至该服务；（3）您启用定位时，经纬度存于本地，生成问候时可能作为上下文发送至第三方 AI。</strong>本软件不设账号系统，不收集手机号、邮箱、身份证件，不进行跨站追踪。本地数据安全取决于您设备的安全状况，设备丢失或被恶意软件攻击导致的数据泄露，开发者不承担责任。</p>
+<h3>六、位置信息</h3>
+<p>定位为可选功能，需经您主动授权，仅用于生成与所在地点相关的问候。您可随时在系统设置中关闭，不影响其他功能。开发者不基于位置信息进行用户画像或商业利用。</p>
+<h3>七、未成年人保护</h3>
+<p>未满 14 周岁的儿童须经监护人阅读并同意后方可使用。14 至 18 周岁应在监护人指导下使用。<strong>监护人应正确履行监护职责，防范网络沉迷。</strong></p>
+<h3>八、知识产权</h3>
+<p>本软件源代码以 MIT 许可证开源，著作权归原作者所有。软件名称、标识、界面设计等权利归开发者所有。<strong>您创建的人设、头像与对话内容，权利归您所有。</strong>AI 生成内容的权利归属适用第三方服务条款及适用法律。</p>
+<h3>九、免责与责任限制</h3>
+<p><strong>本软件按"现状"提供，不附带任何明示或默示保证</strong>，包括适销性、特定用途适用性、准确性与不侵权的保证。不保证不会中断、无差错或无安全漏洞。<strong>在适用法律允许的最大范围内，对因使用或无法使用本软件产生的任何间接、偶然、特殊、惩罚性或后果性损害，开发者不承担责任。</strong></p>
+<p><strong>在适用法律允许的最大范围内，开发者对您承担的全部赔偿责任总额不超过您实际支付的费用；鉴于本软件免费提供，该金额为零。</strong>本条不适用于故意或重大过失造成的损害，也不适用于法律禁止限制或排除责任的情形。</p>
+<h3>十、服务的变更与终止</h3>
+<p>开发者有权随时变更、暂停或终止全部或部分功能，无需事先通知。您可通过停止使用并删除本软件终止本协议。终止后，关于知识产权、免责与责任限制、争议解决的条款继续有效。</p>
+<h3>十一、法律适用与争议解决</h3>
+<p><strong>本协议适用中华人民共和国法律</strong>（不包括港澳台地区法律）。争议应首先友好协商；协商不成的，任何一方可向被告住所地有管辖权的人民法院起诉。开发者有权修订本协议并在软件内公布，修订生效后继续使用即视为接受。</p>
+<h3>确认声明</h3>
+<p>您确认：（一）已完整阅读并理解全部条款，特别是免责、责任限制、争议解决条款；（二）已理解本软件不提供 AI 能力，需自行配置第三方服务并承担费用；（三）已理解数据存于本地，但人设与对话将发送至第三方；（四）同意自行承担创建角色与输入内容的法律与道德责任；（五）具备完全民事行为能力，或已在监护人同意下使用。</p>
+`;
+$('#consentBody').innerHTML = AGREEMENT_HTML;
+
+function showConsent() {
+  consentEl.classList.add('on');
+  agreeChk.checked = false;
+  btnAgree.disabled = true;
+}
+agreeChk.addEventListener('change', () => {
+  btnAgree.disabled = !agreeChk.checked;
+  if (agreeChk.checked) warnEl.classList.remove('on');
+});
+btnAgree.onclick = () => {
+  if (!agreeChk.checked) { warnEl.classList.add('on'); return; }
+  setAgreed();
+  consentEl.classList.remove('on');
+  enterApp();
+};
+$('#btnDecline').onclick = () => {
+  consentEl.classList.remove('on');
+  byeEl.classList.add('on');
+  try { if (hasNative && Native.quit) Native.quit(); } catch(e) {}
+};
+$('#btnAgain').onclick = () => {
+  byeEl.classList.remove('on');
+  showConsent();
+};
+
+/* ══════════ 启动 ══════════ */
+runSplash();
 </script>
 </body>
 </html>

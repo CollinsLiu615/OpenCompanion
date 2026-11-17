@@ -1,5 +1,7 @@
 # OpenCompanion · 开源 AI 伴侣
 
+**Benzene AI Studio · Eight Pixel · 作者 CollinsLiu**
+
 一个可以**完全自己定义**的 AI 伴侣。填上你的 API Key，用一句大白话描述你想要的人，
 它会用 AI 把人设打磨成完整版本，然后你就可以和它聊天、收它的定时问候了。
 
@@ -50,16 +52,24 @@
 
 ## 电脑端
 
-```bash
-pip install -r requirements.txt
-python desktop/launcher.py
-```
+**不用命令行，也不用 `python xxx.py`。** 直接双击桌面图标即可。
 
-会自动启动服务并打开浏览器。想放桌面图标：
+首次安装桌面图标：
 
 ```bash
-python desktop/launcher.py --install-shortcut
+./desktop/scripts/install-desktop.sh     # 在桌面创建 OpenCompanion.app
 ```
+
+之后双击那个图标 → 自动起服务 → 自动打开浏览器。
+
+也可以直接用脚本：
+
+```bash
+./desktop/scripts/start.sh    # 启动（自动装依赖、起服务、开浏览器）
+./desktop/scripts/stop.sh     # 停止
+```
+
+`start.sh` 会自己找 Python、缺依赖自动装、等就绪后再开浏览器，全程无需干预。
 
 ## 安卓端
 
@@ -100,6 +110,23 @@ open-companion/
 ```
 
 ---
+
+## 界面说明
+
+**启动动画**：品牌图标 → 中文名 → 英文名，短暂息屏后展示 Benzene AI Studio，再息屏进入应用。
+
+**首次进入**必须同意《用户协议与隐私政策》才能使用；点击"不同意，退出"会直接关闭程序。
+协议全文见 `docs/用户协议.md`。
+
+**聊天页**：
+- 左上角 ☰ → 人物列表，可切换角色、新建
+- 右上角 ⚙ → 设置面板，包含：
+  - 查看/修改人设（名字、简介、完整人设正文）
+  - 查看/更换头像
+  - 定时问候（添加/修改/删除时刻）
+  - 导出对话（Markdown / JSON）
+  - 清除聊天记录
+  - 删除这个人物（需输入名字二次确认）
 
 ## 定时问候
 

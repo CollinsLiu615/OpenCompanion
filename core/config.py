@@ -43,25 +43,18 @@ def _write_json(path: Path, obj: Any) -> None:
 
 # ── 配置 ────────────────────────────────────────────────
 DEFAULT_CONFIG = {
-    "base_url": "https://api.openai.com/v1",
+    "base_url": "",
     "api_key": "",
-    "model": "gpt-4o-mini",
+    "model": "",
     "temperature": 0.9,
     "max_tokens": 800,
     "configured": False,
 }
 
-# 常见厂商预设：用户选一个就自动填好 base_url 和推荐模型
-PROVIDER_PRESETS = [
-    {"id": "openai",     "name": "OpenAI",            "base_url": "https://api.openai.com/v1",                    "model": "gpt-4o-mini"},
-    {"id": "deepseek",   "name": "DeepSeek 深度求索",  "base_url": "https://api.deepseek.com/v1",                  "model": "deepseek-chat"},
-    {"id": "moonshot",   "name": "Moonshot 月之暗面",  "base_url": "https://api.moonshot.cn/v1",                   "model": "moonshot-v1-8k"},
-    {"id": "zhipu",      "name": "智谱 GLM",           "base_url": "https://open.bigmodel.cn/api/paas/v4",         "model": "glm-4-flash"},
-    {"id": "dashscope",  "name": "通义千问",           "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen-plus"},
-    {"id": "ecnu",       "name": "华东师大 ECNU",      "base_url": "https://chat.ecnu.edu.cn/open/api/v1",         "model": "ecnu-plus"},
-    {"id": "ollama",     "name": "本地 Ollama",        "base_url": "http://localhost:11434/v1",                    "model": "qwen2.5"},
-    {"id": "custom",     "name": "自定义 / 其他",      "base_url": "",                                             "model": ""},
-]
+# 不预设任何服务商：用户必须自己填写接口地址与模型名。
+# 早期版本会预填 OpenAI 地址，容易让用户误以为"填了就能用"，
+# 也容易在换厂商时忘记改地址，反而制造困惑。
+PROVIDER_PRESETS: list[dict] = []
 
 
 def load_config() -> dict:
@@ -295,3 +288,22 @@ def _build_system_prompt(p: dict) -> str:
             + persona + "\n\n"
             "始终以角色身份说话，不要提及自己是 AI 模型或语言模型。"
             "回答自然、口语化，不要用列表格式，不要长篇大论。")
+
+
+# ── 用户协议同意状态 ──────────────────────────────────────
+AGREEMENT_FILE = DATA_DIR / "agreement.json"
+AGREEMENT_VERSION = "1.0"
+
+
+def has_agreed() -> bool:
+    d = _read_json(AGREEMENT_FILE, {})
+    return bool(d.get("agreed")) and d.get("version") == AGREEMENT_VERSION
+
+
+def record_agreement() -> None:
+    _write_json(AGREEMENT_FILE, {
+        "agreed": True,
+        "version": AGREEMENT_VERSION,
+        "at": time.time(),
+        "at_readable": time.strftime("%Y-%m-%d %H:%M:%S"),
+    })

@@ -218,6 +218,28 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public String getAgreed() {
+            return prefs().getBoolean("agreed", false) ? "1" : "0";
+        }
+
+        @JavascriptInterface
+        public void setAgreed(String v) {
+            prefs().edit().putBoolean("agreed", "1".equals(v)).apply();
+        }
+
+        /** "不同意，退出"：直接结束进程，不给留在后台的机会。 */
+        @JavascriptInterface
+        public void quit() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishAffinity();
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void toast(String msg) {
             runOnUiThread(new Runnable() {
                 @Override

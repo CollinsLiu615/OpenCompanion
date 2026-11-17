@@ -15,18 +15,32 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import (Flask, jsonify, redirect, render_template, request,
-                   send_file, url_for)
+                   send_file, session, url_for)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config as C  # noqa: E402
 
-app = Flask(__name__, template_folder=str(Path(__file__).resolve().parent.parent / "templates"))
+_ROOT = Path(__file__).resolve().parent.parent
+app = Flask(__name__, template_folder=str(_ROOT / "templates"),
+            static_folder=str(_ROOT / "static"))
+app.secret_key = os.environ.get("OC_SECRET") or os.urandom(24)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 头像最大 8MB
 
 
 # ── 页面 ────────────────────────────────────────────────
 @app.route("/")
+def splash():
+    """启动页：品牌动画 → 息屏 → 品牌动画 → 息屏 → 应用。
+    首次访问还会弹出用户协议，必须同意才能继续。
+    """
+    return render_template("splash.html")
+
+
+@app.route("/app")
 def index():
+    """真实应用入口。未同意协议则一律退回启动页。"""
+    if not C.has_agreed():
+        return redirect(url_for("splash"))
     cfg = C.load_config()
     personas = C.list_personas()
     # 没配 API 或一个人设都没有 → 进向导
@@ -39,15 +53,40 @@ def index():
 
 @app.route("/wizard")
 def wizard():
+    if not C.has_agreed():
+        return redirect(url_for("splash"))
     return render_template("wizard.html", presets=C.PROVIDER_PRESETS)
 
 
 @app.route("/chat/<pid>")
 def chat_page(pid):
+    if not C.has_agreed():
+        return redirect(url_for("splash"))
     p = C.load_persona(pid)
     if not p:
         return redirect(url_for("index"))
     return render_template("chat.html", persona=p)
+
+
+# ── API：用户协议 ───────────────────────────────────────
+@app.get("/api/agreement")
+def api_agreement_status():
+    return jsonify({"agreed": C.has_agreed(), "version": C.AGREEMENT_VERSION})
+
+
+@app.post("/api/agreement/agree")
+def api_agreement_agree():
+    C.record_agreement()
+    return jsonify({"ok": True})
+
+
+@app.get("/api/agreement/text")
+def api_agreement_text():
+    f = _ROOT / "docs" / "用户协议.md"
+    try:
+        return jsonify({"ok": True, "text": f.read_text(encoding="utf-8")})
+    except Exception:
+        return jsonify({"ok": False, "text": ""}), 404
 
 
 # ── API：配置 ───────────────────────────────────────────
@@ -349,6 +388,66 @@ def api_set_location(pid):
 @app.get("/api/location/<pid>")
 def api_get_location(pid):
     return jsonify(C._read_json(C.DATA_DIR / f"location_{pid}.json", {}))
+
+
+# ── API：设置面板所需 ───────────────────────────────────
+@app.get("/api/chat/<pid>/export")
+def api_export_chat(pid):
+    """把对话导出成 Markdown 或 JSON，直接下载。"""
+    p = C.load_persona(pid)
+    if not p:
+        return jsonify({"ok": False, "message": "角色不存在"}), 404
+    fmt = (request.args.get("format") or "md").lower()
+    name = p.get("name") or pid
+    hist = p.get("history") or []
+
+    if fmt == "json":
+        payload = json.dumps({
+            "name": name, "brief": p.get("brief", ""),
+            "persona": p.get("persona", ""),
+            "exported_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "history": hist,
+        }, ensure_ascii=False, indent=2)
+        mime, ext = "application/json", "json"
+    else:
+        lines = [f"# 与 {name} 的对话", "",
+                 f"导出于 {datetime.now():%Y-%m-%d %H:%M:%S}", ""]
+        if p.get("brief"):
+            lines += [f"> {p['brief']}", ""]
+        lines.append("---")
+        lines.append("")
+        for m in hist:
+            who = "我" if m.get("role") == "user" else name
+            lines.append(f"**{who}**：{m.get('content','')}")
+            lines.append("")
+        payload = "\n".join(lines)
+        mime, ext = "text/markdown", "md"
+
+    buf = io.BytesIO(payload.encode("utf-8"))
+    buf.seek(0)
+    safe = "".join(c for c in name if c.isalnum() or c in "-_") or pid
+    return send_file(buf, mimetype=mime, as_attachment=True,
+                     download_name=f"{safe}_对话.{ext}")
+
+
+@app.post("/api/persona/<pid>/update")
+def api_persona_update(pid):
+    """设置面板里修改名字、简介、人设正文。"""
+    p = C.load_persona(pid)
+    if not p:
+        return jsonify({"ok": False, "message": "角色不存在"}), 404
+    data = request.get_json(force=True) or {}
+    if "name" in data:
+        n = (data["name"] or "").strip()
+        if not n:
+            return jsonify({"ok": False, "message": "名字不能为空"}), 400
+        p["name"] = n
+    if "brief" in data:
+        p["brief"] = data["brief"]
+    if "persona" in data:
+        p["persona"] = data["persona"]
+    C.save_persona(p)
+    return jsonify({"ok": True})
 
 
 @app.get("/healthz")
