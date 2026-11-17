@@ -1,0 +1,8 @@
+data/
+__pycache__/
+*.pyc
+android/build/
+android/OpenCompanion.apk
+android/*.keystore
+.DS_Store
+android/*.idsig

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>{{ persona.name }}</title>
+<style>
+:root{--bg:#0f1115;--card:#181c23;--line:#2a3038;--fg:#e6e8ec;--dim:#8b93a1;--accent:#6c8cff;--err:#ff6b6b}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;
+     background:var(--bg);color:var(--fg);display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+header{flex-shrink:0;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--line);
+       display:flex;align-items:center;gap:12px}
+header img,header .ph{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#11151b;
+       display:flex;align-items:center;justify-content:center;color:var(--dim)}
+header .nm{font-weight:600}
+header .st{font-size:12px;color:var(--dim)}
+header .ops{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap}
+header .ops a{font-size:13px;color:var(--dim);text-decoration:none;white-space:nowrap}
+header .ops a:hover{color:var(--fg)}
+#log{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px}
+.m{max-width:78%;padding:11px 15px;border-radius:16px;white-space:pre-wrap;word-break:break-word;font-size:15px}
+.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px}
+.ta{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px}
+.sys{align-self:center;color:var(--dim);font-size:13px;background:transparent}
+#bar{flex-shrink:0;padding:12px 16px;background:var(--card);border-top:1px solid var(--line);
+     display:flex;gap:10px;align-items:flex-end}
+#msg{flex:1;padding:11px 14px;border-radius:20px;border:1px solid var(--line);background:#11151b;
+     color:var(--fg);font:inherit;resize:none;outline:none;max-height:120px;line-height:1.5}
+#msg:focus{border-color:var(--accent)}
+#send{padding:0 20px;height:42px;border-radius:20px;border:none;background:var(--accent);color:#fff;
+      font:inherit;font-weight:600;cursor:pointer;flex-shrink:0}
+#send:disabled{opacity:.5;cursor:not-allowed}
+.typing{color:var(--dim);font-size:13px;padding:2px 0}
+</style>
+</head>
+<body>
+<header>
+  {% if persona.avatar %}
+    <img src="/avatar/{{ persona.avatar }}" alt="">
+  {% else %}
+    <div class="ph">{{ persona.name[:1] }}</div>
+  {% endif %}
+  <div>
+    <div class="nm">{{ persona.name }}</div>
+    <div class="st" id="status">在线</div>
+  </div>
+  <div class="ops">
+    <a href="/">← 全部</a>
+    <a href="#" id="btn-sched">定时问候</a>
+    <a href="#" id="btn-clear">清空记录</a>
+  </div>
+</header>
+
+<div id="log"></div>
+
+<div id="bar">
+  <textarea id="msg" rows="1" placeholder="说点什么…（Enter 发送，Shift+Enter 换行）"></textarea>
+  <button id="send">发送</button>
+</div>
+
+<script>
+const PID = {{ persona.id|tojson }};
+const log = document.getElementById('log');
+const msg = document.getElementById('msg');
+const send = document.getElementById('send');
+const status = document.getElementById('status');
+let busy = false;
+
+function add(text, cls) {
+  const d = document.createElement('div');
+  d.className = 'm ' + cls;
+  d.textContent = text;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+
+// 载入历史
+fetch('/api/chat/' + encodeURIComponent(PID) + '/history')
+  .then(r => r.json())
+  .then(list => {
+    if (!list.length) { add('开始和 ' + {{ persona.name|tojson }} + ' 聊天吧', 'm sys'); return; }
+    list.forEach(m => add(m.content, m.role === 'user' ? 'me' : 'ta'));
+  });
+
+async function doSend() {
+  const text = msg.value.trim();
+  if (!text || busy) return;
+  msg.value = ''; msg.style.height = 'auto';
+  add(text, 'me');
+  busy = true; send.disabled = true;
+  const tip = add('正在输入…', 'typing');
+
+  try {
+    const r = await fetch('/api/chat/' + encodeURIComponent(PID), {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    const d = await r.json();
+    tip.remove();
+    if (d.ok) add(d.reply, 'ta');
+    else add('出错了：' + (d.message || '未知错误'), 'sys');
+  } catch (e) {
+    tip.remove();
+    add('网络错误：' + e.message, 'sys');
+  }
+  busy = false; send.disabled = false; msg.focus();
+}
+
+send.onclick = doSend;
+msg.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+});
+msg.addEventListener('input', () => {
+  msg.style.height = 'auto';
+  msg.style.height = Math.min(msg.scrollHeight, 120) + 'px';
+});
+
+document.getElementById('btn-clear').onclick = async () => {
+  if (!confirm('清空和 ' + {{ persona.name|tojson }} + ' 的全部聊天记录？这不能撤销。')) return;
+  await fetch('/api/chat/' + encodeURIComponent(PID) + '/history', {method: 'DELETE'});
+  log.innerHTML = '';
+  add('记录已清空', 'm sys');
+};
+
+document.getElementById('btn-sched').onclick = async (e) => {
+  e.preventDefault();
+  const r = await fetch('/api/schedule/' + encodeURIComponent(PID));
+  const cur = await r.json();
+  const txt = prompt(
+    '设置每天几点问候它。\n格式：每行一个「时刻 类型」，类型可选 morning/noon/dinner/night\n例如：\n08:00 morning\n12:00 noon\n23:00 night',
+    cur.map(x => x.at + ' ' + x.kind).join('\n')
+  );
+  if (txt === null) return;
+  const rows = txt.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const [at, kind] = l.split(/\s+/);
+    return { at, kind: kind || 'morning' };
+  });
+  const res = await fetch('/api/schedule/' + encodeURIComponent(PID), {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({schedule: rows})
+  });
+  const d = await res.json();
+  if (d.ok) alert('已保存 ' + d.schedule.length + ' 个问候时刻');
+  else alert('保存失败：' + (d.message || ''));
+};
+</script>
+</body>
+</html>
