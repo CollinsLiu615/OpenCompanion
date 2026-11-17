@@ -6,3 +6,7 @@ android/OpenCompanion.apk
 android/*.keystore
 .DS_Store
 android/*.idsig
+android/build/
+android/*.apk
+android/*.apk.idsig
+android/*.keystore

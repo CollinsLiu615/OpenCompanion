@@ -18,7 +18,7 @@ h2{font-size:19px;margin:0 0 4px}
 .sub{color:var(--dim);font-size:13px;margin-bottom:18px}
 label{display:block;font-size:12px;color:var(--dim);margin:14px 0 6px}
 input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
-     background:#11151b;color:var(--fg);font:inherit;outline:none}
+     background:#f7f8fa;color:var(--fg);font:inherit;outline:none}
 input:focus,textarea:focus{border-color:var(--accent)}
 textarea{resize:vertical;min-height:80px}
 button{padding:13px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;
@@ -31,8 +31,8 @@ button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)
 /* 聊天页 */
 header{flex-shrink:0;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
        background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-header img,header .ph{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#11151b;
-       display:flex;align-items:center;justify-content:center;color:var(--dim)}
+header img,header .ph{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#f7f8fa;
+       display:flex;align-items:center;justify-content:center;color:#9aa3b2}
 header .nm{font-weight:600;font-size:15px}
 header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 #log{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px}
@@ -42,19 +42,19 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 .sys{align-self:center;color:var(--dim);font-size:12px}
 #bar{flex-shrink:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
      background:var(--card);border-top:1px solid var(--line);display:flex;gap:8px;align-items:flex-end}
-#msg{flex:1;padding:11px 14px;border-radius:20px;border:1px solid var(--line);background:#11151b;
+#msg{flex:1;padding:11px 14px;border-radius:20px;border:1px solid var(--line);background:#f7f8fa;
      color:var(--fg);font:inherit;resize:none;outline:none;max-height:100px}
 #send{padding:0 18px;height:42px;border-radius:20px;border:none;background:var(--accent);
       color:#fff;font:inherit;font-weight:600;width:auto;margin:0;flex-shrink:0}
 .row{display:flex;gap:10px}
 .row button{flex:1}
 .av{display:flex;align-items:center;gap:14px;margin-top:8px}
-.av img{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#11151b;border:2px solid var(--line)}
+.av img{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#f7f8fa;border:2px solid var(--line)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
 .p{display:flex;gap:12px;align-items:center;padding:14px;background:var(--card);border:1px solid var(--line);
    border-radius:14px;margin-bottom:10px}
-.p img,.p .ph{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#11151b;
-   display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:19px;flex-shrink:0}
+.p img,.p .ph{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#f7f8fa;
+   display:flex;align-items:center;justify-content:center;color:#9aa3b2;font-size:19px;flex-shrink:0}
 .p .nm{font-weight:600}
 .p .meta{font-size:12px;color:var(--dim)}
 
@@ -122,6 +122,49 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 #bye p{margin:0;font-size:14px;color:var(--dim);max-width:360px;line-height:1.8}
 #bye .again{margin-top:8px;padding:11px 26px;border-radius:10px;border:1px solid var(--line);
             background:#f4f5f7;color:var(--fg);font:inherit;cursor:pointer}
+
+/* ══════ 设置面板 / 抽屉 ══════ */
+.sheet{position:fixed;left:0;right:0;bottom:0;top:0;background:#fff;z-index:900;
+       display:flex;flex-direction:column;transform:translateX(102%);
+       transition:transform .26s cubic-bezier(.3,.9,.4,1);visibility:hidden}
+.sheet.on{transform:translateX(0);visibility:visible}
+.sheet.maskSheet{background:rgba(15,20,30,.4);justify-content:flex-end}
+.sheetHd{padding:calc(14px + env(safe-area-inset-top)) 18px 14px;border-bottom:1px solid var(--line);
+         display:flex;align-items:center;justify-content:space-between;background:#fafbfc}
+.sheetHd h3{margin:0;font-size:16px}
+.xbtn{width:34px;height:34px;border-radius:9px;border:none;background:transparent;
+      color:var(--dim);font-size:16px;cursor:pointer}
+.sheetBd{flex:1;overflow-y:auto;padding:18px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.sblock{margin-bottom:26px}
+.sblock h4{margin:0 0 10px;font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.06em}
+.sblock label{display:block;font-size:12px;color:var(--dim);margin:10px 0 5px}
+.sblock input,.sblock textarea{width:100%;padding:11px 12px;border-radius:9px;
+       border:1px solid var(--line);background:#f7f8fa;color:var(--fg);font:inherit;outline:none}
+.sblock input:focus,.sblock textarea:focus{border-color:var(--accent)}
+.sblock textarea{resize:vertical;line-height:1.7}
+.avrow{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.avrow img{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#f0f2f5;
+           border:2px solid var(--line);flex-shrink:0}
+.sbtn{display:block;width:100%;padding:13px 14px;border-radius:10px;border:1px solid var(--line);
+      background:#fff;color:var(--fg);font:inherit;cursor:pointer;text-align:center;
+      margin-bottom:9px;margin-top:0}
+.sbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.sbtn.danger{color:#d93025;border-color:#f0c4c4}
+.hint{font-size:11.5px;color:var(--dim);margin-top:7px;line-height:1.6}
+/* 抽屉里的列表 */
+#plistSheet .box{background:#fff;border-radius:16px 16px 0 0;max-height:82vh;
+                 display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+#plistSheet .ph2{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;
+                 align-items:center;justify-content:space-between}
+#plistSheet .ph2 h3{margin:0;font-size:15px}
+#plistSheet .list{flex:1;overflow-y:auto;padding:8px}
+#plistSheet .ft{padding:12px 14px;border-top:1px solid var(--line)}
+.pitem{display:flex;gap:12px;align-items:center;padding:12px;border-radius:11px;cursor:pointer}
+.pitem.cur{background:#eef2ff;border:1px solid #c7d2fe}
+.pitem img,.pitem .ph{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#f0f2f5;
+       display:flex;align-items:center;justify-content:center;color:#9aa3b2;font-size:17px;flex-shrink:0}
+.pitem .pnm{font-weight:600;font-size:14px}
+.pitem .pmeta{font-size:11px;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -222,9 +265,10 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 <!-- 聊天 -->
 <div id="chatScreen">
   <header>
+    <div class="bk" id="btnList">☰</div>
     <img id="chAv" style="display:none"><div class="ph" id="chPh">?</div>
-    <div><div class="nm" id="chNm"></div></div>
-    <div class="bk" id="btn-bk">←</div>
+    <div style="min-width:0"><div class="nm" id="chNm"></div></div>
+    <div class="bk" id="btnSet" style="margin-left:auto">⚙</div>
   </header>
   <div id="log"></div>
   <div id="bar">
@@ -232,6 +276,48 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
     <button id="send">发送</button>
   </div>
 </div>
+
+<!-- ══════ 设置面板 ══════ -->
+<div class="sheet" id="settings">
+  <div class="sheetHd">
+    <h3>设置</h3>
+    <button class="xbtn" id="btnCloseSet">✕</button>
+  </div>
+  <div class="sheetBd">
+    <div class="sblock">
+      <h4>人设</h4>
+      <div class="avrow">
+        <img id="setAv" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23f0f2f5'/%3E%3Ctext x='36' y='46' font-size='26' text-anchor='middle' fill='%239aa3b2'%3E%3F%3C/text%3E%3C/svg%3E">
+        <div style="flex:1">
+          <input type="file" id="setAvFile" accept="image/*" style="font-size:12px;border:none;background:none;padding:0">
+          <div class="hint">更换头像，自动裁成正方形</div>
+        </div>
+      </div>
+      <label>名字</label>
+      <input id="setName" placeholder="角色名字">
+      <label>一句话简介</label>
+      <input id="setBrief" placeholder="当初的描述">
+      <label>完整人设</label>
+      <textarea id="setPersona" rows="10"></textarea>
+      <button class="sbtn primary" id="btnSavePersona">保存修改</button>
+    </div>
+
+    <div class="sblock">
+      <h4>对话记录</h4>
+      <button class="sbtn" id="btnExport">导出对话（复制到剪贴板）</button>
+      <button class="sbtn danger" id="btnClear">清除聊天记录</button>
+    </div>
+
+    <div class="sblock">
+      <h4>删除</h4>
+      <button class="sbtn danger" id="btnDelete">删除这个人物</button>
+      <div class="hint">连同人设、头像、全部对话一起删除，不可恢复。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 人物列表抽屉 ══════ -->
+<div class="sheet maskSheet" id="plistSheet"></div>
 
 <script>
 /* ══════════ 基础设施 ══════════ */
@@ -501,16 +587,179 @@ $('#send').onclick = doSend;
 $('#msg').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
 });
-$('#btn-bk').onclick = () => { renderList(); show('#sList'); };
 
-// 安卓返回键：在聊天页先回列表
+
+/* ══════════ 设置面板 / 人物列表 ══════════ */
+const settingsEl = $('#settings');
+const plistSheet = $('#plistSheet');
+
+function openSettings() {
+  if (!cur) return;
+  $('#setName').value = cur.name || '';
+  $('#setBrief').value = cur.brief || '';
+  $('#setPersona').value = cur.persona || '';
+  $('#setAv').src = cur.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23f0f2f5'/%3E%3Ctext x='36' y='46' font-size='26' text-anchor='middle' fill='%239aa3b2'%3E%3F%3C/text%3E%3C/svg%3E";
+  settingsEl.classList.add('on');
+}
+function closeSettings() { settingsEl.classList.remove('on'); }
+$('#btnSet').onclick = openSettings;
+$('#btnCloseSet').onclick = closeSettings;
+
+function showPlist() {
+  const box = $('#plistSheet');
+  let html = '<div class="box"><div class="ph2"><h3>我的伴侣</h3>'
+           + '<button class="xbtn" id="closePlist">✕</button></div><div class="list">';
+  personas.forEach(p => {
+    html += `<div class="pitem${p.id === (cur&&cur.id) ? ' cur' : ''}" data-id="${p.id}">`
+         +  (p.avatar ? `<img src="${p.avatar}">` : `<div class="ph">${esc(p.name.slice(0,1))}</div>`)
+         +  `<div><div class="pnm">${esc(p.name)}</div>`
+         +  `<div class="pmeta">${(p.history||[]).length} 条对话</div></div></div>`;
+  });
+  if (!personas.length) html += '<div class="hint" style="padding:14px">还没有伴侣</div>';
+  html += '</div><div class="ft"><button class="sbtn" id="plistNew">＋ 新建一个伴侣</button></div></div>';
+  box.innerHTML = html;
+  box.classList.add('on');
+
+  box.querySelector('#closePlist').onclick = () => box.classList.remove('on');
+  box.querySelector('#plistNew').onclick = () => { box.classList.remove('on'); show('#s2'); };
+  box.querySelectorAll('.pitem').forEach(el => {
+    el.onclick = () => {
+      box.classList.remove('on');
+      openChat(el.dataset.id);
+    };
+  });
+  box.onclick = ev => { if (ev.target === box) box.classList.remove('on'); };
+}
+$('#btnList').onclick = showPlist;
+
+/* 保存人设 */
+$('#btnSavePersona').onclick = () => {
+  if (!cur) return;
+  const nm = $('#setName').value.trim();
+  if (!nm) { toast('名字不能为空'); return; }
+  cur.name = nm;
+  cur.brief = $('#setBrief').value;
+  cur.persona = $('#setPersona').value;
+  store.set('personas', personas);
+  $('#chNm').textContent = cur.name;
+  toast('已保存');
+  closeSettings();
+  renderList();
+};
+
+/* 换头像 */
+$('#setAvFile').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) { return; }
+  if (f.size > 3 * 1024 * 1024) { toast('图片太大（超过 3MB）'); return; }
+  const fr = new FileReader();
+  fr.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas');
+      const side = Math.min(img.width, img.height);
+      cv.width = cv.height = 256;
+      cv.getContext('2d').drawImage(img,
+        (img.width-side)/2, (img.height-side)/2, side, side, 0, 0, 256, 256);
+      const data = cv.toDataURL('image/jpeg', 0.85);
+      cur.avatar = data;
+      store.set('personas', personas);
+      $('#setAv').src = data;
+      if (cur.avatar) {
+        $('#chAv').src = data; $('#chAv').style.display = '';
+        $('#chPh').style.display = 'none';
+      }
+      toast('头像已更新');
+      renderList();
+    };
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(f);
+};
+
+/* 导出对话：手机上最实用的是复制到剪贴板 */
+$('#btnExport').onclick = () => {
+  if (!cur) return;
+  const now = new Date();
+  let txt = `# 与 ${cur.name} 的对话\n导出于 ${now.toLocaleString()}\n\n`;
+  (cur.history || []).forEach(m => {
+    txt += `**${m.role === 'user' ? '我' : cur.name}**：${m.content}\n\n`;
+  });
+  const copy = () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(
+        () => toast('已复制到剪贴板'),
+        () => fallback()
+      );
+    } else fallback();
+  };
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('已复制到剪贴板'); }
+    catch(e) { toast('复制失败，请手动记录'); }
+    document.body.removeChild(ta);
+  };
+  copy();
+};
+
+/* 清除记录 */
+$('#btnClear').onclick = () => {
+  if (!cur) return;
+  if (!confirm('清空和 ' + cur.name + ' 的全部聊天记录？不能撤销，建议先导出。')) return;
+  cur.history = [];
+  store.set('personas', personas);
+  $('#log').innerHTML = '';
+  addBubble('记录已清空', 'sys');
+  toast('已清除');
+  closeSettings();
+  renderList();
+};
+
+/* 删除人物：输入名字二次确认 */
+$('#btnDelete').onclick = () => {
+  if (!cur) return;
+  const input = prompt('删除「' + cur.name + '」会连同人设、头像、全部对话一起删除，无法恢复。\n\n确认请输入它的名字：');
+  if (input === null) return;
+  if (input.trim() !== cur.name) { toast('名字不对，已取消'); return; }
+  personas = personas.filter(p => p.id !== cur.id);
+  store.set('personas', personas);
+  closeSettings();
+  $('#log').innerHTML = '';
+  cur = null;
+  if (!personas.length) { show('#s2'); }
+  else { renderList(); show('#sList'); }
+  toast('已删除');
+};
+
+/* 安卓返回键：优先关面板 */
 window.OCBack = () => {
+  if (settingsEl.classList.contains('on')) { closeSettings(); return true; }
+  if (plistSheet.classList.contains('on')) { plistSheet.classList.remove('on'); return true; }
   if ($('#chatScreen').classList.contains('on')) { renderList(); show('#sList'); return true; }
   for (const id of ['#s1','#s2','#s3']) {
     if ($(id).classList.contains('on')) { show('#sList'); return true; }
   }
   return false;
 };
+
+/* toast */
+function toast(t) {
+  if (hasNative && Native.toast) { try { Native.toast(t); return; } catch(e) {} }
+  let el = document.getElementById('__toast');
+  if (!el) {
+    el = document.createElement('div'); el.id = '__toast';
+    el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);'
+      + 'background:#1f2530;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;'
+      + 'z-index:2000;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap';
+    document.body.appendChild(el);
+  }
+  el.textContent = t;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 1800);
+}
 
 /* ══════════ 协议存储 ══════════ */
 function agreedAlready() {
