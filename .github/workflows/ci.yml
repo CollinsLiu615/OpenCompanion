@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  python:
+    name: Python 语法与依赖
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+      - name: 语法检查
+        run: python -m compileall -q core
+      - name: 导入检查
+        run: python -c "import sys; sys.path.insert(0,'core'); import config, server, notify; print('导入正常')"
+
+  security-scan:
+    name: 隐私与安全扫描
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 检查硬编码密钥
+        run: |
+          if grep -rnE "sk-[a-zA-Z0-9]{20,}" \
+             --include="*.py" --include="*.html" --include="*.java" \
+             --include="*.js" --include="*.sh" . ; then
+            echo "::error::发现疑似硬编码的 API Key"
+            exit 1
+          fi
+          echo "✓ 无硬编码密钥"
+
+      - name: 检查埋点 SDK
+        run: |
+          if grep -rniE "firebase|umeng|bugly|sentry|google-analytics" \
+             --include="*.java" --include="*.html" --include="*.gradle" . ; then
+            echo "::error::发现埋点 SDK 引用"
+            exit 1
+          fi
+          echo "✓ 无埋点 SDK"
+
+      - name: 检查硬编码服务器地址（Java）
+        run: |
+          # 安卓 Java 代码里不应出现真实的硬编码 http(s) 地址。
+          # 排除两类误报：
+          #   1. 错误提示文案里的 "https:// 开头" 这类说明性文字
+          #   2. XML 命名空间 URI（schemas.android.com 等）
+          HITS=$(grep -rnE "https?://[a-zA-Z0-9]" --include="*.java" android/app/src/ \
+                 | grep -vE "schemas\.android\.com|w3\.org|schemas\.xml\.org" \
+                 | grep -vE "https?:// 开头" || true)
+          if [ -n "$HITS" ]; then
+            echo "::error::Java 代码中发现硬编码 URL："
+            echo "$HITS"
+            exit 1
+          fi
+          echo "✓ Java 代码无硬编码 URL"
+
+      - name: 检查私钥泄漏
+        run: |
+          if git ls-files | grep -qE "\.keystore$|\.jks$"; then
+            echo "::error::仓库中包含了签名私钥"
+            exit 1
+          fi
+          echo "✓ 无私钥入库"
+
+  android-build:
+    name: 安卓构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装 build-tools 36.1.0
+        run: sdkmanager "platforms;android-36" "build-tools;36.1.0"
+
+      - name: 生成测试签名证书
+        run: cd android && ./make-keystore.sh
+
+      - name: 构建 APK
+        run: |
+          cd android
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          ./build.sh
+
+      - name: 验证 APK 可安装性
+        run: |
+          cd android
+          BT=$ANDROID_SDK_ROOT/build-tools/36.1.0
+          # targetSdkVersion 必须 >= 23，否则 Android 14+ 无法安装
+          TARGET=$($BT/aapt2 dump badging OpenCompanion.apk | grep -oE "targetSdkVersion:'[0-9]+'" | grep -oE '[0-9]+')
+          echo "targetSdkVersion = $TARGET"
+          if [ "$TARGET" -lt 23 ]; then
+            echo "::error::targetSdkVersion < 23，Android 14+ 将无法安装"
+            exit 1
+          fi
+          $BT/apksigner verify OpenCompanion.apk
+          echo "✓ APK 签名有效且可安装"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenCompanion-apk
+          path: android/OpenCompanion.apk

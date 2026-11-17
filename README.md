@@ -1,137 +1,232 @@
-# OpenCompanion · 开源 AI 伴侣
+<div align="center">
 
-**Benzene AI Studio · Eight Pixel · 作者 CollinsLiu**
+<img src="assets/brand/icon.png" width="120" alt="OpenCompanion">
 
-一个可以**完全自己定义**的 AI 伴侣手机应用。填上你的 API Key，用一句大白话描述你想要的
-角色，它会用 AI 把人设打磨成完整版本，然后就可以聊天了。
+# OpenCompanion
 
-- 📱 **纯安卓 App**，完整离线 —— 不走服务器，AI 请求由手机直接发出
-- 🆓 MIT 协议
-- 🔌 **不锁厂商**：任何 OpenAI 兼容接口都行
-- 💾 **数据全在手机本地**，没有云端账户
+**一个可以完全自己定义的 AI 伴侣**
+
+填上你自己的 API，用一句话描述想要的角色，AI 帮你把设定打磨成完整人设，然后就可以聊天了。
+
+安卓离线 App · 手机网页版 · 数据全部留在本机
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-lightgrey.svg)](#安装)
+[![Version](https://img.shields.io/badge/version-0.1.0--beta-orange.svg)](#)
+
+[Benzene AI Studio](https://space.bilibili.com/1968400182) · Eight Pixel · [@CollinsLiu615](https://github.com/CollinsLiu615)
+
+</div>
 
 ---
 
-## 怎么用（iPhone / 浏览器 / 安卓都行）
+## 它是什么
 
-同一套代码，三种用法：
+市面上大多数 AI 伴侣产品，人设是平台定好的，你只能挑一个。
 
-### 方式一：iPhone（推荐，不用装任何东西）
+OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自己的设备上。**
 
-1. 在电脑上启动服务（见下方「电脑端启动」）
-2. 手机连**同一个 WiFi**，Safari 打开启动时打印的地址，如 `http://192.168.1.101:8800`
-3. 点击 Safari 底部的「分享」→「添加到主屏幕」
-4. 桌面上就有图标了，打开是全屏的，和 App 一样
+- 🔌 **不绑定厂商** —— 任何 OpenAI 兼容接口都能用（OpenAI / DeepSeek / Moonshot / 智谱 / 通义 / 本地 Ollama …）
+- 🎭 **人设可打磨** —— 写一句话，AI 扩写成带示例台词的完整人设，之后随时可改
+- 💾 **本地优先** —— 无账号、无云端、无埋点，删掉 App 数据就没了
+- 🔔 **定时问候** —— 到点收到它的消息，可选由 AI 用角色语气生成
+- 👥 **多角色** —— 想养几个养几个，各自独立设定与记忆
 
-> 缺点：电脑得开着。出门用不了。
+## 截图
 
-### 方式二：安卓 App
+<div align="center">
+<table>
+<tr>
+<td><img src="docs/screenshots/splash.png" width="180" alt="启动动画"></td>
+<td><img src="docs/screenshots/wizard.png" width="180" alt="创建向导"></td>
+<td><img src="docs/screenshots/chat.png" width="180" alt="聊天"></td>
+<td><img src="docs/screenshots/settings.png" width="180" alt="设置面板"></td>
+</tr>
+<tr>
+<td align="center">启动动画</td>
+<td align="center">三步创建</td>
+<td align="center">对话</td>
+<td align="center">设置</td>
+</tr>
+</table>
+</div>
 
-APK 在 `android/OpenCompanion.apk`，传到手机安装即可。
-这是**完全离线**的，不依赖电脑。
+---
 
-> 首次安装需允许「安装未知来源应用」。
+## 安装
 
-### 方式三：就在电脑上用
+### 方式一：安卓 App（完全离线，推荐）
 
-启动后浏览器打开 `http://127.0.0.1:8800` 即可。
+1. 到 [Releases](../../releases) 下载最新 `OpenCompanion.apk`
+2. 传到手机安装（需允许「安装未知来源应用」）
 
-## 电脑端启动
+首次启动需授予通知、相册、后台运行权限，用于定时问候与选择头像。
+
+### 方式二：手机网页版（iPhone 也能用）
+
+需要一台电脑始终开机作为服务端。
 
 ```bash
-./desktop/scripts/start.sh     # 启动
-./desktop/scripts/stop.sh      # 停止
+git clone https://github.com/CollinsLiu615/OpenCompanion.git
+cd OpenCompanion
+pip install -r requirements.txt
+./desktop/scripts/start.sh
 ```
 
-会自己找 Python、缺依赖自动装、等就绪后打印手机访问地址。
+启动后会打印两个地址：
+
+```
+电脑上打开:  http://127.0.0.1:8800
+手机上打开:  http://<你的局域网IP>:8800
+```
+
+手机与电脑连同一个 WiFi，浏览器打开第二个地址，
+再点「添加到主屏幕」，桌面上就有图标了。
+
+> 停止服务：`./desktop/scripts/stop.sh`
 
 ---
 
-## 三步使用
+## 使用
 
 ### 1️⃣ 配置 API
 
-打开 App 会依次看到品牌启动动画、用户协议。同意后进入配置页，填写三项：
+填三项：接口地址、API Key、模型名。
 
-| 填什么 | 说明 |
-| :--- | :--- |
-| 接口地址 | 你的服务商提供的 base_url，一般以 `/v1` 结尾 |
-| API Key | 服务商后台生成的那串密钥 |
-| 模型名 | 服务商提供的模型名称 |
+| 常见服务商 | 接口地址 | 模型名示例 |
+| :--- | :--- | :--- |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| Moonshot | `https://api.moonshot.cn/v1` | `moonshot-v1-8k` |
+| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-4-flash` |
+| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
+| 本地 Ollama | `http://localhost:11434/v1` | `qwen2.5` |
 
-**不预设任何厂商**，全部由你自己填。填完点「测试连接」确认能通。
+> 本软件不自带 AI 能力，费用由你的服务商收取。
 
 ### 2️⃣ 描述人设
 
-写一句大白话，比如「嘴硬心软的女大学生，会吐槽我但很关心我」，
-点「让 AI 写完整人设」，等 1-2 分钟。
+写一句大白话，比如：
 
-### 3️⃣ 修改并保存
+> 嘴硬心软的女大学生，会吐槽我但很关心我，说话简短带点毒舌
 
-生成的人设是可直接编辑的文本框，不满意就改，也可以重新生成。最后上传头像完成。
+点「让 AI 写完整人设」，约 30 秒后生成一份包含身份、性格、说话风格（带 3 句示例台词）、相处方式、边界与禁区的完整文档。
+
+### 3️⃣ 修改、保存、开聊
+
+生成结果是**可直接编辑的文本框**，改到满意为止。之后可随时在设置里继续改。
+
+### 日常使用
+
+| 位置 | 功能 |
+| :--- | :--- |
+| 左上角 ☰ | 人物列表，切换角色 / 新建 |
+| 右上角 ⚙ | 设置：改人设、换头像、定时问候、导出对话、清除记录、删除角色、关于、注销 |
 
 ---
 
-## 界面
+## 自己构建
 
-**启动动画**：图标 → 中文名 → 英文名 → 息屏 → Benzene AI Studio → 息屏 → 应用
+### 安卓
 
-**首次进入**必须同意《用户协议与隐私政策》（全文见 `docs/用户协议.md`），
-不同意则退出应用。
+```bash
+cd android
+./make-keystore.sh    # 首次构建：生成签名证书
+./build.sh            # 打包
+```
 
-**聊天页**：
-- 左上角 **☰** → 人物列表，可切换角色、新建
-- 右上角 **⚙** → 设置面板：
-  - 查看/修改人设（名字、简介、完整人设）
-  - 查看/更换头像
-  - 导出对话（复制到剪贴板）
-  - 清除聊天记录
-  - 删除这个人物（需输入名字二次确认）
+需要 **JDK 21** 与 **Android SDK**（build-tools 34+）。
+
+> ⚠️ 必须使用 build-tools **36.1.0 或更新**。
+> 34.0.0 版 `d8` 处理匿名内部类时会崩：
+> `NullPointerException: Cannot invoke "String.length()" because "<parameter1>" is null`
+
+> ⚠️ 签名证书一旦丢失，已安装用户将**永远无法升级**（签名不一致系统会拒绝覆盖）。
+> 请务必备份 `android/signing/release.keystore`。
+
+### 网页版
+
+无需构建，`start.sh` 会自己检查依赖并启动。
 
 ---
 
 ## 项目结构
 
 ```
-open-companion/
-├── android/
-│   ├── app/src/         Java 源码（WebView + 原生网络桥）
-│   ├── app/res/         图标与资源
-│   ├── assets/          离线界面
-│   └── build.sh         无 Gradle 打包脚本
-├── assets/brand/        品牌原始图
-└── docs/用户协议.md      协议全文
+OpenCompanion/
+├── android/                  安卓 App（完整离线）
+│   ├── app/src/              Java：WebView 壳 + 原生网络桥 + 闹钟 + 加密存储
+│   ├── app/res/              图标与资源
+│   ├── assets/               离线界面（HTML/JS）
+│   ├── build.sh              无 Gradle 打包脚本
+│   └── make-keystore.sh      生成签名证书
+├── core/                     网页版后端
+│   ├── config.py             配置、人设、AI 调用
+│   ├── server.py             Flask 路由 + 进程内定时排程
+│   └── notify.py             可选推送（Bark / Webhook）
+├── templates/                网页版界面
+├── desktop/scripts/          网页版启停脚本
+├── docs/
+│   ├── 用户协议.md            协议全文
+│   ├── 快速上手.md            新手引导
+│   └── screenshots/          截图
+└── assets/brand/             品牌原始图
 ```
 
 ---
 
-## 自己构建
+## 设计上的三个坑
 
-```bash
-cd android
-./build.sh
-```
+这些是开发中真实踩过的，记下来供参考。
 
-需要 JDK 21 与 Android SDK。
+### 1. 通知不要写回对话历史
 
-> **注意**：Android build-tools 必须用 **36.1.0 或更新**。
-> 34.0.0 版 `d8` 处理匿名内部类时会崩：
-> `NullPointerException: Cannot invoke "String.length()" because "<parameter1>" is null`。
+问候是单方面的，用户通常不回。若把每次问候都存进 `history`，
+历史里就全是「早安」而没有用户的话，模型下次会照着复读——
+表现就是**中午还在发早安**。
+
+**正确做法**：通知只写独立的日志，不进对话上下文。
+
+### 2. 品牌图配色要和背景对比
+
+本项目品牌图是纯黑字/线（RGB 0,0,0）。最初放在深色背景上，
+文字完全不可见。检查图片本身是不够的，**必须验证它与背景的对比度**。
+
+### 3. 敏感数据不要经 Intent 传递
+
+`AlarmManager` 的 Intent 会由系统保存。把 API Key 放进 Intent，
+等于把已加密的密钥以明文复制一份到系统服务里，加密就白做了。
+
+**正确做法**：Intent 只带标识（如 `pid`），真实密钥在触发时从加密存储现场读取。
 
 ---
 
-## 设计上的两个坑
+## 安全与隐私
 
-**1. 通知不要写回对话历史。**
-问候是单方面的，用户不会回。若把每次问候都存进历史，历史里就全是「早安」而没有
-用户的话，模型下次会照着复读，出现「中午还在发早安」这种错乱。
+| | |
+| :--- | :--- |
+| **无埋点** | 无任何统计 SDK |
+| **无自有服务器** | 请求只发往你自己填的 `base_url` |
+| **加密存储** | API Key 与人设经 Android Keystore（AES-256-GCM）加密，密钥不可导出 |
+| **禁止备份导出** | `allowBackup=false` |
+| **HTTPS 强制** | 默认禁明文，仅放行 localhost 供本地服务使用 |
+| **最小权限** | 9 项，无定位 / 通讯录 / 短信 / 摄像头 |
 
-**2. 品牌图配色要和背景对比。**
-本项目品牌图是纯黑字/线（RGB 0,0,0），必须配浅色背景。一开始用了深色背景，
-导致文字完全不可见 —— 只检查了图片本身，没验证与背景的对比度。
+完整说明（含签名指纹、已知局限）见 [SECURITY.md](SECURITY.md)。
+
+> **免责**：本软件不提供 AI 能力，费用与合规责任由使用者承担。
+> AI 生成内容不代表开发者观点。请勿未经授权使用真实人物创建角色。
 
 ---
+
+## 贡献
+
+欢迎 Issue 与 PR。提交前请确保：
+
+- 不引入任何埋点或统计 SDK
+- 不引入硬编码的服务器地址
+- 新增权限需在 PR 中说明用途
 
 ## 许可
 
-MIT。
+[MIT](LICENSE) · 人设内容归创建者所有
