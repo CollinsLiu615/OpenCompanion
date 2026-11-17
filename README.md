@@ -1,4 +1,4 @@
-# OpenCompanion · 开源 AI 伴侣（安卓版）
+# OpenCompanion · 开源 AI 伴侣
 
 **Benzene AI Studio · Eight Pixel · 作者 CollinsLiu**
 
@@ -12,11 +12,38 @@
 
 ---
 
-## 安装
+## 怎么用（iPhone / 浏览器 / 安卓都行）
 
-APK 在 `android/OpenCompanion.apk`，传到手机点击安装即可。
+同一套代码，三种用法：
 
-> 首次安装需在系统设置里允许「安装未知来源应用」。
+### 方式一：iPhone（推荐，不用装任何东西）
+
+1. 在电脑上启动服务（见下方「电脑端启动」）
+2. 手机连**同一个 WiFi**，Safari 打开启动时打印的地址，如 `http://192.168.1.101:8800`
+3. 点击 Safari 底部的「分享」→「添加到主屏幕」
+4. 桌面上就有图标了，打开是全屏的，和 App 一样
+
+> 缺点：电脑得开着。出门用不了。
+
+### 方式二：安卓 App
+
+APK 在 `android/OpenCompanion.apk`，传到手机安装即可。
+这是**完全离线**的，不依赖电脑。
+
+> 首次安装需允许「安装未知来源应用」。
+
+### 方式三：就在电脑上用
+
+启动后浏览器打开 `http://127.0.0.1:8800` 即可。
+
+## 电脑端启动
+
+```bash
+./desktop/scripts/start.sh     # 启动
+./desktop/scripts/stop.sh      # 停止
+```
+
+会自己找 Python、缺依赖自动装、等就绪后打印手机访问地址。
 
 ---
 

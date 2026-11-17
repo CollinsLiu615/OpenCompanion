@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>设置向导 · OpenCompanion</title>
+<style>
+:root{--bg:#ffffff;--card:#ffffff;--line:#e3e6eb;--fg:#1a1d23;--dim:#6b7280;--accent:#4b6ef5;--ok:#12a15c;--err:#d93025;--danger:#d93025}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;
+     background:var(--bg);color:var(--fg);min-height:100vh;padding:40px 16px}
+.wrap{max-width:680px;margin:0 auto}
+h1{font-size:24px;margin:0 0 6px}
+.sub{color:var(--dim);margin-bottom:28px}
+.steps{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+.steps div{flex:1;min-width:100px;padding:10px;border-radius:10px;background:var(--card);
+           border:1px solid var(--line);font-size:13px;color:var(--dim);text-align:center}
+.steps div.on{color:var(--fg);border-color:var(--accent);background:#eef2ff}
+.steps div.done{color:var(--ok);border-color:#26463a}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+label{display:block;font-size:13px;color:var(--dim);margin:14px 0 6px}
+input,textarea,select{width:100%;padding:11px 13px;border-radius:9px;border:1px solid var(--line);
+     background:#f7f8fa;color:var(--fg);font:inherit;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:90px}
+button{padding:11px 20px;border-radius:9px;border:none;background:var(--accent);color:#fff;
+       font:inherit;font-weight:600;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.msg{margin-top:12px;padding:11px 13px;border-radius:9px;font-size:14px;display:none}
+.msg.ok{display:block;background:#12291f;color:var(--ok);border:1px solid #1e4433}
+.msg.err{display:block;background:#2b1616;color:var(--err);border:1px solid #4a2222}
+.avatar-box{display:flex;align-items:center;gap:16px;margin-top:8px}
+.avatar-box img{width:84px;height:84px;border-radius:50%;object-fit:cover;background:#f0f2f5;
+                border:2px solid var(--line)}
+.hidden{display:none}
+.tip{font-size:13px;color:var(--dim);margin-top:8px}
+</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="OpenCompanion">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/brand/touch-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/static/brand/touch-192.png">
+<link rel="icon" href="/static/brand/favicon.png">
+</head>
+<body>
+<div class="wrap">
+  <h1>创建你的 AI 伴侣</h1>
+  <div class="sub">三步就好。填完随时可以回来改。</div>
+
+  <div class="steps">
+    <div id="s1" class="on">① 配置 API</div>
+    <div id="s2">② 描述人设</div>
+    <div id="s3">③ 打磨完善</div>
+  </div>
+
+  <!-- 第 1 步 -->
+  <div class="card" id="step1">
+    <h3 style="margin:0 0 4px">① 连接 AI 接口</h3>
+    <div class="tip">本软件不自带 AI 能力，需要你填写自己的接口信息。
+      任何 OpenAI 兼容接口都可以，去你的服务商后台就能找到这三项。</div>
+
+    <label>接口地址（base_url）</label>
+    <input id="base_url" placeholder="https://你的服务商域名/v1" autocapitalize=off autocorrect=off spellcheck=false>
+
+    <label>API Key</label>
+    <input id="api_key" type="password" placeholder="粘贴你的 API Key" autocapitalize=off autocorrect=off spellcheck=false>
+
+    <label>模型名</label>
+    <input id="model" placeholder="你的服务商提供的模型名称" autocapitalize=off autocorrect=off spellcheck=false>
+
+    <div class="row">
+      <button id="btn-test">测试连接</button>
+      <button class="ghost" id="btn-next1">下一步 →</button>
+    </div>
+    <div class="msg" id="m1"></div>
+  </div>
+
+  <!-- 第 2 步 -->
+  <div class="card hidden" id="step2">
+    <h3 style="margin:0 0 4px">② 你想要个什么样的人？</h3>
+    <div class="tip">用大白话写就行，不用讲究。比如：一个嘴硬心软的女孩子，喜欢吐槽我，但其实很关心我。</div>
+    <label>角色名字</label>
+    <input id="name" placeholder="小D">
+    <label>一句话描述</label>
+    <textarea id="brief" placeholder="嘴硬心软的女大学生，会吐槽我但很关心我，说话简短带点毒舌"></textarea>
+    <div class="row">
+      <button id="btn-refine">让它帮我写完整人设</button>
+      <button class="ghost" id="btn-skip2">自己写 →</button>
+    </div>
+    <div class="msg" id="m2"></div>
+  </div>
+
+  <!-- 第 3 步 -->
+  <div class="card hidden" id="step3">
+    <h3 style="margin:0 0 4px">③ 这是它写的完整人设</h3>
+    <div class="tip">不满意就直接改，改到满意为止。可以重复让 AI 重写。</div>
+    <textarea id="persona" style="min-height:340px;font-size:14px;line-height:1.75"></textarea>
+
+    <label>头像（可选）</label>
+    <div class="avatar-box">
+      <img id="av-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 84 84'%3E%3Crect width='84' height='84' fill='%23f0f2f5'/%3E%3Ctext x='42' y='50' font-size='30' text-anchor='middle' fill='%239aa3b2'%3E%3F%3C/text%3E%3C/svg%3E" alt="">
+      <div>
+        <input type="file" id="avatar" accept="image/*" style="font-size:13px">
+        <div class="tip">会自动裁成正方形。方形头像效果最好。</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="btn-save">完成，开始聊天</button>
+      <button class="ghost" id="btn-again">让它重新写一遍</button>
+    </div>
+    <div class="msg" id="m3"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const show = (el, cls, text) => { el.className = 'msg ' + cls; el.textContent = text; };
+
+// 已保存的配置回填（不预填任何默认值，一切由用户填）
+fetch('/api/config').then(r => r.json()).then(cfg => {
+  if (cfg.base_url) $('#base_url').value = cfg.base_url;
+  if (cfg.model) $('#model').value = cfg.model;
+  if (cfg.api_key && cfg.api_key !== '') {
+    $('#api_key').placeholder = '已保存（' + cfg.api_key + '），留空则不修改';
+  }
+});
+
+function setStep(n) {
+  ['#step1','#step2','#step3'].forEach((s,i) => $(s).classList.toggle('hidden', i+1 !== n));
+  ['#s1','#s2','#s3'].forEach((s,i) => {
+    $(s).classList.toggle('on', i+1 === n);
+    $(s).classList.toggle('done', i+1 < n);
+  });
+}
+
+// 测试连接
+$('#btn-test').onclick = async () => {
+  const btn = $('#btn-test'); btn.disabled = true; btn.textContent = '测试中…';
+  try {
+    const r = await fetch('/api/test-connection', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        base_url: $('#base_url').value.trim(),
+        api_key: $('#api_key').value.trim(),
+        model: $('#model').value.trim()
+      })
+    });
+    const d = await r.json();
+    d.ok ? show($('#m1'),'ok','✓ ' + d.message) : show($('#m1'),'err','✗ ' + d.message);
+  } catch(e) { show($('#m1'),'err','请求失败：' + e.message); }
+  btn.disabled = false; btn.textContent = '测试连接';
+};
+
+// 保存配置并进下一步
+$('#btn-next1').onclick = async () => {
+  const body = {
+    base_url: $('#base_url').value.trim(),
+    model: $('#model').value.trim()
+  };
+  const key = $('#api_key').value.trim();
+  if (key) body.api_key = key;
+  if (!body.base_url || !body.model) { show($('#m1'),'err','接口地址和模型名都要填'); return; }
+  if (!key && !$('#api_key').placeholder.includes('已保存')) {
+    show($('#m1'),'err','请填入 API Key'); return;
+  }
+  const r = await fetch('/api/config', {method:'POST',headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)});
+  const d = await r.json();
+  if (d.ok) { setStep(2); } else { show($('#m1'),'err', d.message || '保存失败'); }
+};
+
+// AI 打磨人设
+$('#btn-refine').onclick = async () => {
+  const brief = $('#brief').value.trim();
+  if (!brief) { show($('#m2'),'err','先写一句描述吧，哪怕很短'); return; }
+  if (!$('#name').value.trim()) { show($('#m2'),'err','给角色起个名字'); return; }
+  const btn = $('#btn-refine'); btn.disabled = true; btn.textContent = 'AI 正在写…（约 10-30 秒）';
+  try {
+    const r = await fetch('/api/persona/refine', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({brief})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      $('#persona').value = d.persona;
+      setStep(3);
+      show($('#m3'),'ok','✓ 已生成，可以直接修改');
+    } else {
+      show($('#m2'),'err','✗ ' + d.message);
+    }
+  } catch(e) { show($('#m2'),'err','请求失败：' + e.message); }
+  btn.disabled = false; btn.textContent = '让它帮我写完整人设';
+};
+
+$('#btn-skip2').onclick = () => { setStep(3); };
+
+$('#btn-again').onclick = () => { setStep(2); $('#btn-refine').click(); };
+
+// 保存角色
+$('#btn-save').onclick = async () => {
+  const name = $('#name').value.trim();
+  if (!name) { show($('#m3'),'err','缺少角色名'); return; }
+  const btn = $('#btn-save'); btn.disabled = true; btn.textContent = '保存中…';
+  try {
+    const r = await fetch('/api/persona/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name,
+        brief: $('#brief').value.trim(),
+        persona: $('#persona').value
+      })
+    });
+    const d = await r.json();
+    if (!d.ok) { show($('#m3'),'err','✗ ' + (d.message || '保存失败')); btn.disabled=false; btn.textContent='完成，开始聊天'; return; }
+
+    // 有头像就上传
+    const file = $('#avatar').files[0];
+    if (file) {
+      const fd = new FormData(); fd.append('avatar', file);
+      await fetch('/api/persona/' + encodeURIComponent(d.id) + '/avatar', {method:'POST', body:fd});
+    }
+    location.href = '/chat/' + encodeURIComponent(d.id);
+  } catch(e) { show($('#m3'),'err','请求失败：' + e.message); btn.disabled=false; btn.textContent='完成，开始聊天'; }
+};
+
+// 头像预览
+$('#avatar').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f);
+  $('#av-preview').src = url;
+};
+</script>
+</body>
+</html>
