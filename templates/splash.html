@@ -175,6 +175,7 @@ body{font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",san
   <h2>已停止使用</h2>
   <p>您未同意《用户协议与隐私政策》，本软件无法继续使用。<br>如需使用，请重新打开并同意协议。</p>
   <button class="again" id="btnAgain">重新阅读协议</button>
+  <button class="again" id="btnExit" style="border-color:#e0b4b4;color:#c62828">关闭这个页面</button>
 </div>
 
 <script>
@@ -331,6 +332,18 @@ document.getElementById('btnDecline').onclick = () => {
 document.getElementById('btnAgain').onclick = () => {
   document.getElementById('bye').classList.remove('on');
   showConsent();
+};
+document.getElementById('btnExit').onclick = () => {
+  // 安卓端由原生 quit() 真正结束进程；浏览器里尝试关闭标签页
+  try { if (hasNative && Native.quit) { Native.quit(); return; } } catch(e) {}
+  window.close();
+  // 若浏览器不允许脚本关闭（常见），则清空为空白页，不留下可用界面
+  setTimeout(() => {
+    document.documentElement.innerHTML =
+      '<body style="background:#fff;color:#8b93a1;font:14px sans-serif;'
+      + 'display:flex;align-items:center;justify-content:center;height:100vh;margin:0">'
+      + '已退出。可以关闭这个标签页了。</body>';
+  }, 300);
 };
 // 链接文字也点开协议查看（已在同一屏，滚动到顶部）
 document.querySelectorAll('#consent .lnk').forEach(el => {
