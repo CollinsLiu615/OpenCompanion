@@ -143,6 +143,8 @@ DEFAULT_PERSONA = {
     "greeting_style": "",  # 问候语气（留空则用默认）
     "created": 0,
     "history": [],         # 真实对话（只有 user 与紧随的 assistant）
+    "summary": "",         # 早期对话的压缩摘要
+    "summarized_count": 0, # 已被压缩进摘要的消息条数
     "reminders": [],
 }
 
@@ -263,6 +265,136 @@ def refine_persona(brief: str, cfg: dict | None = None, name: str = "") -> str:
     )
 
 
+# ── 上下文管理 ────────────────────────────────────────────
+# 按 token 而非条数控制：同样 40 条，闲聊可能只有 2k token，
+# 长回复能到 30k，按条数切会导致「要么没用满、要么直接超限」。
+#
+# 中文约 1 字 ≈ 1 token，英文约 4 字符 ≈ 1 token。
+# 不引入 tiktoken：它下载词表要联网，且各厂商分词器不同，
+# 用一个保守的启发式估算反而更稳（宁可少算不少算）。
+
+# 这三个值是配合关系，改一个要一起看：
+#   历史涨到 TRIGGER     → 触发压缩
+#   压缩后只保留 KEEP    → 留出 (TRIGGER - KEEP) 的缓冲
+#   送入模型最多 BUDGET   → 留出余量给 system prompt 与本次提问
+#
+# 缓冲太小会导致「刚压缩完很快又满」，频繁调用摘要 = 频繁花钱。
+# 取 TRIGGER 是 BUDGET 的 2/3、KEEP 是 TRIGGER 的 1/2，
+# 这样一次压缩后要再聊很久才会再次触发。
+CONTEXT_TOKEN_BUDGET = 6000      # 送入模型的历史对话预算
+SUMMARY_TRIGGER_TOKENS = 4000    # 未摘要的历史超过这个值就压缩
+KEEP_RECENT_TOKENS = 2000        # 压缩时保留最近多少 token 的原文
+MAX_HISTORY_ITEMS = 400          # 硬上限，防止文件无限膨胀
+
+
+def estimate_tokens(text: str) -> int:
+    """粗略估算 token 数。
+
+    中日韩字符按 1 token/字，其余按 4 字符/token。
+    故意偏高估计，避免超出模型上下文导致请求失败。
+    """
+    if not text:
+        return 0
+    cjk = 0
+    other = 0
+    for ch in text:
+        if '\u4e00' <= ch <= '\u9fff' or '\u3040' <= ch <= '\u30ff' \
+                or '\uac00' <= ch <= '\ud7af':
+            cjk += 1
+        else:
+            other += 1
+    return cjk + max(1, other // 3)
+
+
+def _msg_tokens(m: dict) -> int:
+    return estimate_tokens(m.get("content") or "") + 4  # 4 为角色标记开销
+
+
+def _take_recent_within(history: list[dict], budget: int) -> list[dict]:
+    """从最近往前取消息，直到用满预算。返回按时间正序的列表。"""
+    picked = []
+    used = 0
+    for m in reversed(history):
+        t = _msg_tokens(m)
+        if used + t > budget:
+            break
+        picked.append(m)
+        used += t
+    picked.reverse()
+    # 确保以 user 开头，避免出现孤立的 assistant 消息
+    while picked and picked[0].get("role") != "user":
+        picked.pop(0)
+    return picked
+
+
+def _summarize(older: list[dict], persona: dict, cfg: dict) -> str:
+    """把一段较早的对话压缩成要点，供后续请求作为背景注入。
+
+    AI 失败时退回为「截取每条消息前 40 字」的机械摘要，
+    保证不会因为摘要失败而中断对话。
+    """
+    if not older:
+        return ""
+
+    lines = []
+    for m in older:
+        role = "对方" if m.get("role") == "user" else (persona.get("name") or "我")
+        text = (m.get("content") or "").strip().replace("\n", " ")
+        lines.append(f"{role}: {text}")
+    transcript = "\n".join(lines)
+
+    try:
+        return chat_completion(
+            messages=[
+                {"role": "system", "content":
+                 "你是一个对话摘要助手。把下面的对话压缩成简洁的要点，"
+                 "保留：双方的重要信息、约定、情绪变化、关系进展。"
+                 "用第三人称陈述，不超过 300 字。不要评论，只输出摘要。"},
+                {"role": "user", "content": transcript},
+            ],
+            cfg=cfg, temperature=0.3, max_tokens=500,
+        ).strip()
+    except Exception:
+        # 兜底：机械截取
+        bits = []
+        for m in older[-20:]:
+            text = (m.get("content") or "").strip().replace("\n", " ")
+            if text:
+                bits.append(text[:40])
+        return "（较早的对话）" + " / ".join(bits)
+
+
+def prepare_context(persona: dict, cfg: dict) -> tuple[list[dict], dict]:
+    """构建发给模型的历史消息，必要时触发滚动摘要。
+
+    返回 (messages, persona)，persona 可能因摘要而更新，调用方需保存。
+    """
+    history = persona.get("history") or []
+
+    # 未摘要部分的 token 量
+    total = sum(_msg_tokens(m) for m in history)
+
+    if total > SUMMARY_TRIGGER_TOKENS and len(history) > 6:
+        recent = _take_recent_within(history, KEEP_RECENT_TOKENS)
+        cut = len(history) - len(recent)
+        older = history[:cut]
+
+        if older:
+            new_summary = _summarize(older, persona, cfg)
+            if new_summary:
+                old_summary = (persona.get("summary") or "").strip()
+                merged = (old_summary + "\n" + new_summary).strip() if old_summary else new_summary
+                # 摘要本身也限长，防止无限累积
+                if estimate_tokens(merged) > 1200:
+                    merged = merged[-2400:]
+                persona["summary"] = merged
+                persona["history"] = recent
+                persona["summarized_count"] = (persona.get("summarized_count") or 0) + len(older)
+                history = recent
+
+    return _take_recent_within(history, CONTEXT_TOKEN_BUDGET), persona
+
+
 def chat_with_persona(pid: str, user_msg: str, cfg: dict | None = None) -> str:
     """和某个角色对话。只带真实对话历史，绝不写入通知类消息。"""
     p = load_persona(pid)
@@ -270,36 +402,61 @@ def chat_with_persona(pid: str, user_msg: str, cfg: dict | None = None) -> str:
         raise RuntimeError("角色不存在")
     cfg = cfg or load_config()
 
+    # 按 token 预算取历史，必要时先做滚动摘要（会更新 p 的 summary / history）
+    history, p = prepare_context(p, cfg)
+
     system = _build_system_prompt(p)
     msgs = [{"role": "system", "content": system}]
-    # 只带最近 20 轮，避免上下文膨胀
-    for m in (p.get("history") or [])[-40:]:
+    for m in history:
         if m.get("role") in ("user", "assistant") and m.get("content"):
             msgs.append({"role": m["role"], "content": m["content"]})
     msgs.append({"role": "user", "content": user_msg})
 
     reply = chat_completion(msgs, cfg=cfg)
 
+    p.setdefault("history", [])
     p["history"].append({"role": "user", "content": user_msg})
     p["history"].append({"role": "assistant", "content": reply})
-    p["history"] = p["history"][-200:]  # 只留最近 200 条
+    if len(p["history"]) > MAX_HISTORY_ITEMS:
+        p["history"] = p["history"][-MAX_HISTORY_ITEMS:]
     save_persona(p)
     return reply
 
 
 def _build_system_prompt(p: dict) -> str:
+    """构建 system prompt。
+
+    **前缀必须稳定**：同一个角色无论何时发起请求，返回内容的开头都要完全一致，
+    否则服务商的 prompt 缓存会全部失效。
+
+    各家缓存（OpenAI automatic caching / DeepSeek context caching /
+    Anthropic prompt caching）的判据都是「请求前缀字节级相同」。
+    因此把随请求变化的内容（当前时间）放到**最后**，
+    把人设这种固定内容放在**最前**，让最长的公共前缀能被命中。
+    """
+    persona = p.get("persona") or p.get("brief") or ""
+    name = p.get("name") or "AI 伴侣"
+
+    # ── 静态部分：同一角色永远相同，可被缓存 ──
+    static = (f"你现在扮演「{name}」。以下是你的人设，请完全按照它来回应：\n\n"
+              + persona + "\n\n"
+              "始终以角色身份说话，不要提及自己是 AI 模型或语言模型。"
+              "回答自然、口语化，不要用列表格式，不要长篇大论。")
+
+    # ── 摘要部分：变动频率低（仅在压缩时更新），放在人设之后 ──
+    summary = (p.get("summary") or "").strip()
+    if summary:
+        static += ("\n\n【此前对话的摘要】（用于延续记忆，不需要在回复里复述）\n" + summary)
+
+    # ── 动态部分：放末尾，不破坏前面的缓存前缀 ──
     from datetime import datetime
     now = datetime.now()
     wd = "一二三四五六日"[now.weekday()]
-    head = (f"【当前时间】{now.strftime('%Y-%m-%d %H:%M')} 星期{wd}\n"
-            "你可以参考这个时间调整语气（早上说早安、深夜提醒休息），"
-            "但不要像机器人一样念时间数据。\n\n")
-    persona = p.get("persona") or p.get("brief") or ""
-    name = p.get("name") or "AI 伴侣"
-    return (head + f"你现在扮演「{name}」。以下是你的人设，请完全按照它来回应：\n\n"
-            + persona + "\n\n"
-            "始终以角色身份说话，不要提及自己是 AI 模型或语言模型。"
-            "回答自然、口语化，不要用列表格式，不要长篇大论。")
+    dynamic = (f"\n\n【当前时间】{now.strftime('%Y-%m-%d %H:%M')} 星期{wd}\n"
+               "你可以参考这个时间调整语气（早上说早安、深夜提醒休息），"
+               "但不要像机器人一样念时间数据。")
+
+    return static + dynamic
 
 
 # ── 用户协议同意状态 ──────────────────────────────────────
