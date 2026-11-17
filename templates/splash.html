@@ -256,7 +256,9 @@ async function runSplash() {
     en.classList.add('in');
     await wait(900);
     document.getElementById('splash').style.display = 'none';
-    document.getElementById('appFrame').src = '/app';
+    const _f = document.getElementById('appFrame');
+    _f.src = '/app';
+    _f.style.opacity = '1';   // 之前漏了这句，iframe 一直透明 → 白屏
     return;
   }
 
