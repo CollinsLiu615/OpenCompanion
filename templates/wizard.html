@@ -20,7 +20,8 @@ h1{font-size:24px;margin:0 0 6px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
 label{display:block;font-size:13px;color:var(--dim);margin:14px 0 6px}
 input,textarea,select{width:100%;padding:11px 13px;border-radius:9px;border:1px solid var(--line);
-     background:#f7f8fa;color:var(--fg);font:inherit;outline:none}
+     background:#f7f8fa;color:var(--fg);font-family:inherit;font-size:16px;outline:none}
+/* iOS Safari 会对小于 16px 的输入框自动放大页面，故固定 16px */
 input:focus,textarea:focus,select:focus{border-color:var(--accent)}
 textarea{resize:vertical;min-height:90px}
 button{padding:11px 20px;border-radius:9px;border:none;background:var(--accent);color:#fff;
@@ -122,7 +123,7 @@ button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)
   <div class="card hidden" id="step3">
     <h3 style="margin:0 0 4px">③ 这是它写的完整人设</h3>
     <div class="tip">不满意就直接改，改到满意为止。可以重复让 AI 重写。</div>
-    <textarea id="persona" style="min-height:340px;font-size:14px;line-height:1.75"></textarea>
+    <textarea id="persona" style="min-height:340px;font-size:16px;line-height:1.75"></textarea>
 
     <label>头像（可选）</label>
     <div class="avatar-box">

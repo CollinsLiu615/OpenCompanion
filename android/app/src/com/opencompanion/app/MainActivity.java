@@ -230,6 +230,52 @@ public class MainActivity extends Activity {
             return result.toString();
         }
 
+        /**
+         * 打开外部链接。优先用 B 站 App（如果能处理该链接），
+         * 否则回落到浏览器。
+         *
+         * 用 Intent 而不是 JS 的 location 跳转：WebView 里 window.location
+         * 指向自定义 scheme 经常被忽略，Intent 才是安卓上的正解。
+         */
+        @JavascriptInterface
+        public void openUrl(final String url) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // 先把 space.bilibili.com/1968400182 换成 App 的 scheme
+                        String appUrl = url;
+                        if (url.contains("space.bilibili.com/")) {
+                            try {
+                                String mid = url.substring(
+                                        url.indexOf("space.bilibili.com/") + 19);
+                                int slash = mid.indexOf('/');
+                                if (slash > 0) mid = mid.substring(0, slash);
+                                appUrl = "bilibili://space/" + mid;
+                            } catch (Exception ignored) { }
+                        }
+
+                        Intent app = new Intent(Intent.ACTION_VIEW, Uri.parse(appUrl));
+                        if (!appUrl.equals(url) && app.resolveActivity(getPackageManager()) != null) {
+                            startActivity(app);          // 装了就跳 App
+                            return;
+                        }
+
+                        Intent web = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        web.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(web);              // 没装就开浏览器
+                    } catch (Exception e) {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                        } catch (Exception e2) {
+                            Toast.makeText(MainActivity.this, "无法打开链接",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            });
+        }
+
         @JavascriptInterface
         public void requestPermissions() {
             runOnUiThread(new Runnable() {
