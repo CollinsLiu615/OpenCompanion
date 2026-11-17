@@ -518,7 +518,15 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
       <label style="margin-top:14px">问候内容</label>
       <textarea id="greetText" rows="3"
         placeholder="例如：提醒我喝水 / 问我今天有没有好好吃饭 / 催我早点睡"></textarea>
-      <div class="hint">写一句你想让它做的事，它会用人设的语气说出来。</div>
+      <div class="hint">写一句你想让它做的事。开启下方开关后，会由 AI 用人设的语气重新组织这句话；关闭则原样弹出你写的文字。</div>
+
+      <label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer">
+        <input type="checkbox" id="greetUseAI" checked
+               style="width:20px;height:20px;flex-shrink:0;accent-color:var(--accent)">
+        <span style="font-size:14px;color:#1a1d23">到点时用 AI 生成内容</span>
+      </label>
+      <div class="hint" id="aiHint">开启后，闹钟响时会把你的人设与这句话发给 AI 服务生成回复。
+        若无网络或接口出错，将改为直接弹出上面写的文字。</div>
 
       <label style="margin-top:14px">快捷选择</label>
       <div class="chips">
@@ -864,7 +872,7 @@ function renderSchedule() {
     const d = document.createElement('div');
     d.className = 'gitem';
     d.innerHTML = `<div class="gt">${r.at}</div>
-                   <div class="gc">${esc(r.text || '')}</div>
+                   <div class="gc">${r.useAI !== false ? '✨ ' : ''}${esc(r.text || '')}</div>
                    <button class="gdel">删</button>`;
     d.querySelector('.gdel').onclick = () => {
       cur.schedule = (cur.schedule || []).filter((_, j) => j !== i);
@@ -893,10 +901,12 @@ function openGreetDialog(idx) {
     $('#greetTitle').textContent = '修改问候';
     $('#greetTime').value = r.at;
     $('#greetText').value = r.text || '';
+    $('#greetUseAI').checked = r.useAI !== false;  // 旧数据默认开启
   } else {
     $('#greetTitle').textContent = '添加问候';
     $('#greetTime').value = '08:00';
     $('#greetText').value = '';
+    $('#greetUseAI').checked = true;
   }
   dlg.classList.add('on');
 }
@@ -914,13 +924,14 @@ document.querySelectorAll('#greetDialog .chip').forEach(c => {
 $('#greetSave').onclick = () => {
   const at = $('#greetTime').value;
   const text = $('#greetText').value.trim();
+  const useAI = $('#greetUseAI').checked;
   if (!at) { toast('请选择时间'); return; }
   if (!text) { toast('请填写问候内容'); return; }
   if (!cur.schedule) cur.schedule = [];
   if (editingGreetIdx >= 0) {
-    cur.schedule[editingGreetIdx] = {at, text};
+    cur.schedule[editingGreetIdx] = {at, text, useAI};
   } else {
-    cur.schedule.push({at, text});
+    cur.schedule.push({at, text, useAI});
   }
   cur.schedule.sort((a, b) => a.at.localeCompare(b.at));
   saveScheduleToStore();
@@ -940,7 +951,16 @@ function syncNativeAlarms() {
     const payload = [];
     personas.forEach(p => {
       (p.schedule || []).forEach(g => {
-        payload.push({pid: p.id, name: p.name, at: g.at, text: g.text});
+        // 只传必要字段。不要在这里放 apiKey / persona：
+        // 它们会被 Native.scheduleAlarms 以明文存进 SharedPreferences，
+        // 等于绕过 Keystore 加密。原生层在闹钟触发时按 pid 现场读取。
+        payload.push({
+          pid: p.id,
+          name: p.name,
+          at: g.at,
+          text: g.text,
+          useAI: g.useAI !== false
+        });
       });
     });
     Native.scheduleAlarms(JSON.stringify(payload));
@@ -1228,7 +1248,10 @@ const AGREEMENT_HTML = `
 <h3>五、数据存储与隐私</h3>
 <p><strong>本软件采用本地存储架构。</strong>除下述情形外，您的全部内容仅存储于本设备，开发者不收集、不上传、不备份、不访问您的任何用户内容，不出售不出租不交换您的个人信息。下列情形数据可能经第三方传输：<strong>（1）调用第三方 AI 服务时，人设与对话内容将被发送至您配置的第三方；（2）生成人设时，您填写的名字与描述同样会发送至该第三方。</strong>定时通知不经过任何第三方服务，也不经过开发者服务器。本软件不设账号系统，不收集手机号、邮箱、身份证件，不进行跨站追踪。本地数据安全取决于您设备的安全状况，设备丢失或被恶意软件攻击导致的数据泄露，开发者不承担责任。</p>
 <h3>六、定位与通知</h3>
-<p><strong>本版本不收集、不使用任何位置信息</strong>，未申请定位权限，也不包含推送服务。定时通知为<strong>纯本地通知</strong>：由您设置时刻与内容，本机系统到点直接弹出您填写的文字，<strong>不经网络、不调用 AI、不经过开发者服务器</strong>。您可以随时在系统设置中关闭通知权限，不影响其他功能。</p>
+<p><strong>本版本不收集、不使用任何位置信息</strong>，未申请定位权限，也不包含推送服务。定时通知为<strong>本地通知</strong>，您可以自行选择两种内容模式：</p>
+<p>（1）<strong>固定文本</strong>（默认关闭 AI）：到点直接弹出您填写的文字，<strong>不联网、不调用任何服务</strong>；<br>
+（2）<strong>AI 生成</strong>（需您在每条问候中手动开启）：到点由本机将<strong>该角色的设定与该条问候主题</strong>发送至您配置的第三方 AI 服务以生成回复，再弹出生成结果。若此时无网络或接口出错，将自动改为弹出您填写的原文。</p>
+<p>无论哪种模式，内容均<strong>不经过开发者服务器，也不经过任何第三方推送服务</strong>。您可以随时在系统设置中关闭通知权限，不影响其他功能。</p>
 <h3>七、未成年人保护</h3>
 <p>未满 14 周岁的儿童须经监护人阅读并同意后方可使用。14 至 18 周岁应在监护人指导下使用。<strong>监护人应正确履行监护职责，防范网络沉迷。</strong></p>
 <h3>八、知识产权</h3>
