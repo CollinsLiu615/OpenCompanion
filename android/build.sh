@@ -37,16 +37,26 @@ cp "$OUT/base.apk" "$OUT/unsigned.apk"
 (cd "$OUT/dex" && zip -q -X "../unsigned.apk" classes.dex)
 
 echo "── 6/6 签名 ──"
-KS="$OUT/oc.keystore"
+# 证书必须固定：放在 signing/ 而不是 build/。
+# 早期版本把 keystore 生成在 build/ 里，每次清空重打包都会换新证书，
+# 导致已安装用户无法覆盖升级（签名不一致系统会拒绝安装）。
+KS="signing/release.keystore"
+KS_PASS="${OC_KS_PASS:-opencompanion123}"
+KS_ALIAS="${OC_KS_ALIAS:-opencompanion}"
+
 if [ ! -f "$KS" ]; then
-  "$JAVA_HOME/bin/keytool" -genkeypair -v -keystore "$KS" -alias oc \
-    -keyalg RSA -keysize 2048 -validity 10000 \
-    -storepass opencompanion -keypass opencompanion \
-    -dname "CN=OpenCompanion, OU=App, O=OpenSource, L=NA, ST=NA, C=CN" >/dev/null 2>&1
+  echo "  ✗ 找不到签名证书 $KS"
+  echo "    首次构建请先执行：./make-keystore.sh"
+  exit 1
 fi
+
 "$BT/zipalign" -f 4 "$OUT/unsigned.apk" "$OUT/aligned.apk"
-"$BT/apksigner" sign --ks "$KS" --ks-pass pass:opencompanion \
-  --key-pass pass:opencompanion --out OpenCompanion.apk "$OUT/aligned.apk"
+"$BT/apksigner" sign --ks "$KS" --ks-pass "pass:$KS_PASS" \
+  --ks-key-alias "$KS_ALIAS" --key-pass "pass:$KS_PASS" \
+  --out OpenCompanion.apk "$OUT/aligned.apk"
+
+# v4 方案需要单独的 idsig 文件，对普通安装非必需，这里顺手生成
+"$BT/apksigner" verify --print-certs OpenCompanion.apk 2>/dev/null | grep "SHA-256 digest" | sed 's/^/  /'
 
 echo
 echo "✓ 完成：$(pwd)/OpenCompanion.apk"

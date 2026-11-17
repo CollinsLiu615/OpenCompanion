@@ -56,13 +56,21 @@ public class MainActivity extends Activity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);          // 本地存储
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
+
+        // 收紧文件访问：所有界面都在 assets 里，不需要读设备文件系统。
+        // 关掉可避免恶意页面/hook 借 file:// 读取本地敏感文件。
+        s.setAllowFileAccess(false);
+        s.setAllowContentAccess(false);
+        try { s.setAllowFileAccessFromFileURLs(false); } catch (Exception ignored) { }
+        try { s.setAllowUniversalAccessFromFileURLs(false); } catch (Exception ignored) { }
+
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
         s.setTextZoom(100);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        s.setGeolocationEnabled(false);         // 本版不使用定位
+        s.setSaveFormData(false);               // 不缓存表单（含 Key）
 
-        web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb,
@@ -81,7 +89,25 @@ public class MainActivity extends Activity {
             }
         });
 
+        // 只对本地页面暴露 JS 桥。
+        // 如果导航到任何 http/https 页面（例如外面链接），立即切断桥接，
+        // 防止远程页面调用 Native.chat 读走 API Key。
         web.addJavascriptInterface(new Bridge(), "Native");
+        web.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView v, String url) {
+                // 非本地页面一律交给系统浏览器，不在 WebView 内加载
+                return !(url.startsWith("file://") || url.startsWith("about:"));
+            }
+
+            @Override
+            public void onPageStarted(WebView v, String url, android.graphics.Bitmap favicon) {
+                if (url != null && !url.startsWith("file://")) {
+                    // 兜底：外部页面不允许有桥
+                    v.removeJavascriptInterface("Native");
+                }
+            }
+        });
         web.loadUrl("file:///android_asset/index.html");
 
         // 恢复上次保存的定时问候闹钟（App 重启后仍然有效）
@@ -124,22 +150,26 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getConfig() {
-            return prefs().getString("config", "{}");
+            // 配置里有 API Key，存取都走加密
+            String v = SecureStore.get(MainActivity.this, "config", "{}");
+            return v == null ? "{}" : v;
         }
 
         @JavascriptInterface
         public void saveConfig(String json) {
-            prefs().edit().putString("config", json).apply();
+            SecureStore.put(MainActivity.this, "config", json);
         }
 
         @JavascriptInterface
         public String getPersonas() {
-            return prefs().getString("personas", "[]");
+            // 含聊天记录与私人设定，同样加密
+            String v = SecureStore.get(MainActivity.this, "personas", "[]");
+            return v == null ? "[]" : v;
         }
 
         @JavascriptInterface
         public void savePersonas(String json) {
-            prefs().edit().putString("personas", json).apply();
+            SecureStore.put(MainActivity.this, "personas", json);
         }
 
         /**

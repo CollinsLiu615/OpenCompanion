@@ -5,6 +5,12 @@
     android:versionName="0.1.0-beta">
 
     <!-- 网络 -->
+    <!-- targetSdk 必填：Android 14(API 34) 起禁止安装 targetSdk < 23 的应用，
+         缺失会被默认当成 1，表现为「应用未安装」。 -->
+    <uses-sdk
+        android:minSdkVersion="24"
+        android:targetSdkVersion="34"/>
+
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
@@ -30,8 +36,9 @@
         android:label="OpenCompanion"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:allowBackup="true"
-        android:usesCleartextTraffic="true"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity

@@ -11,3 +11,4 @@ android/*.apk
 android/*.apk.idsig
 android/*.keystore
 .DS_Store
+android/signing/*.keystore
