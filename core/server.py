@@ -69,6 +69,14 @@ def chat_page(pid):
 
 
 # ── API：用户协议 ───────────────────────────────────────
+@app.route("/terms")
+def terms_page():
+    """协议全文。用户同意之后仍然可以随时回来查看。"""
+    if not C.has_agreed():
+        return redirect(url_for("splash"))
+    return render_template("terms.html")
+
+
 @app.get("/api/agreement")
 def api_agreement_status():
     return jsonify({"agreed": C.has_agreed(), "version": C.AGREEMENT_VERSION})

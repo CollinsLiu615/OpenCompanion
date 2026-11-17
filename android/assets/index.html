@@ -455,6 +455,28 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
          <a href="mailto:collinsliu9@gmail.com" style="color:var(--accent)">collinsliu9@gmail.com</a></p>
       <h4>版本</h4>
       <p><code>beta v0.1.0</code></p>
+
+      <h4>法律条款</h4>
+      <p><a href="#" id="btnTerms"
+            style="color:var(--accent);text-decoration:underline">《用户协议与隐私政策》</a>
+         <span style="font-size:11.5px;color:var(--dim)">（点击查看全文）</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 协议全文（同意后仍可随时查看）══════ -->
+<div class="sheet maskSheet" id="termsSheet">
+  <div class="mbox" style="height:92vh">
+    <div class="mhd">
+      <div>
+        <h3 style="margin:0">用户协议与隐私政策</h3>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">版本 v1.0 · 生效日期 2026-11-17</div>
+      </div>
+      <button class="xbtn" id="termsClose">✕</button>
+    </div>
+    <div class="mbd" id="termsBody" style="flex:1"></div>
+    <div class="mft" style="justify-content:center">
+      <button class="sbtn" id="termsBack" style="flex:1">关闭</button>
     </div>
   </div>
 </div>
@@ -1114,7 +1136,7 @@ $('#btnDelete').onclick = () => {
 
 /* 安卓返回键：优先关面板 */
 window.OCBack = () => {
-  for (const m of ['#quitMask', '#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
+  for (const m of ['#termsSheet', '#quitMask', '#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
     const el = document.querySelector(m);
     if (el && el.classList.contains('on')) { el.classList.remove('on'); return true; }
   }
@@ -1300,6 +1322,19 @@ $('#btnAgain').onclick = () => {
 
 /* ══════════ 启动 ══════════ */
 runSplash();
+
+/* ══════════ 协议全文查看 ══════════ */
+const termsSheet = $('#termsSheet');
+$('#btnTerms').onclick = e => {
+  e.preventDefault();
+  $('#termsBody').innerHTML = AGREEMENT_HTML;   // 与首次同意时同一份正文
+  $('#termsBody').scrollTop = 0;
+  termsSheet.classList.add('on');
+};
+const closeTerms = () => termsSheet.classList.remove('on');
+$('#termsClose').onclick = closeTerms;
+$('#termsBack').onclick = closeTerms;
+termsSheet.onclick = e => { if (e.target === termsSheet) closeTerms(); };
 
 /* ══════════ 关于 ══════════ */
 const aboutModal = $('#aboutModal');
