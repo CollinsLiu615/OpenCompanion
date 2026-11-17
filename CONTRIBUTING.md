@@ -39,6 +39,20 @@ pip install -r requirements.txt
 - 涉及界面的改动请附截图
 - 修 Bug 请说明复现步骤
 
+## 界面规范
+
+### 输入框字号不得小于 16px
+
+iOS Safari 对 `font-size < 16px` 的输入框**会强制放大整个页面**，
+用户点进输入框时页面会突然缩放。这是 Safari 的既定行为，不是 bug。
+
+现有一律用 `font-family: inherit; font-size: 16px`，改动时勿降低。
+
+### 品牌图与背景的对比
+
+品牌图是纯黑字/线（RGB 0,0,0），**只能配浅色背景**。
+更换配色方案时务必实际查看渲染结果，不要只检查图片文件本身。
+
 ## 代码风格
 
 - Python：PEP 8
