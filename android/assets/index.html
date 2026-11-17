@@ -213,6 +213,13 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 .mft{padding:12px 18px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;
      flex-shrink:0;border-top:1px solid var(--line)}
 .mft .sbtn{margin:0;flex:1}
+
+.screenTop{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+.closeX{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+        background:#fff;color:#6b7280;font-size:15px;flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;padding:0;
+        margin:0;cursor:pointer;margin-top:2px}
+.closeX:active{background:#f4f5f7}
 </style>
 </head>
 <body>
@@ -261,8 +268,14 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 
 <!-- ① 配置 -->
 <div class="screen on" id="s1">
-  <h2>连接 AI</h2>
-  <div class="sub">本软件不自带 AI 能力，需填写你自己的接口信息。去服务商后台就能找到这三项。</div>
+  <div class="screenTop">
+    <div style="flex:1">
+      <h2>连接 AI</h2>
+      <div class="sub" style="margin-bottom:0">本软件不自带 AI 能力，需填写你自己的接口信息</div>
+    </div>
+    <button class="closeX" data-quit="1">✕</button>
+  </div>
+  <div class="sub"></div>
   <label>接口地址（base_url）</label>
   <input id="base_url" placeholder="https://你的服务商域名/v1" autocapitalize=off autocorrect=off spellcheck=false>
   <label>API Key</label>
@@ -276,8 +289,14 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 
 <!-- ② 人设 -->
 <div class="screen" id="s2">
-  <h2>它是个什么样的人</h2>
-  <div class="sub">用大白话写，AI 会帮你写成完整人设</div>
+  <div class="screenTop">
+    <div style="flex:1">
+      <h2>它是个什么样的人</h2>
+      <div class="sub" style="margin-bottom:0">用大白话写，AI 会帮你写成完整人设</div>
+    </div>
+    <button class="closeX" data-quit="1">✕</button>
+  </div>
+  <div class="sub"></div>
   <label>名字</label>
   <input id="name" placeholder="给它起个名字">
   <label>一句话描述</label>
@@ -294,8 +313,14 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
 
 <!-- ③ 完善 -->
 <div class="screen" id="s3">
-  <h2>完整人设</h2>
-  <div class="sub">不满意直接改</div>
+  <div class="screenTop">
+    <div style="flex:1">
+      <h2>完整人设</h2>
+      <div class="sub" style="margin-bottom:0">不满意直接改</div>
+    </div>
+    <button class="closeX" data-quit="1">✕</button>
+  </div>
+  <div class="sub"></div>
   <textarea id="persona" style="min-height:260px;font-size:13px;line-height:1.7"></textarea>
   <label>头像</label>
   <div class="av">
@@ -388,6 +413,20 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
       <h4>账号</h4>
       <button class="sbtn danger" id="btnLogout">注销账号</button>
       <div class="hint">会删除本机全部数据，包括 API 配置、所有人设、头像与聊天记录。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 放弃创建确认 ══════ -->
+<div class="sheet maskSheet" id="quitMask">
+  <div class="mbox" style="max-width:340px">
+    <div class="mbd" style="padding-top:22px">
+      <h3 style="margin:0 0 10px;font-size:16px;color:#1a1d23">放弃本次创建？</h3>
+      <p style="margin:0">将会丢失本次创建的全部进度，包括已填写的名字、描述和人设内容。</p>
+    </div>
+    <div class="mft">
+      <button class="sbtn" id="quitCancel">继续编辑</button>
+      <button class="sbtn danger" id="quitOk">放弃并退出</button>
     </div>
   </div>
 </div>
@@ -1049,7 +1088,7 @@ $('#btnDelete').onclick = () => {
 
 /* 安卓返回键：优先关面板 */
 window.OCBack = () => {
-  for (const m of ['#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
+  for (const m of ['#quitMask', '#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
     const el = document.querySelector(m);
     if (el && el.classList.contains('on')) { el.classList.remove('on'); return true; }
   }
@@ -1299,6 +1338,38 @@ $('#logout2Ok').onclick = () => {
 [logout1El, logout2El].forEach(m => {
   m.onclick = e => { if (e.target === m) m.classList.remove('on'); };
 });
+
+
+/* ══════════ 创建流程关闭 ══════════ */
+const quitMask = $('#quitMask');
+
+function wizardHasProgress() {
+  return !!($('#name').value.trim() || $('#brief').value.trim() ||
+            ($('#persona') && $('#persona').value.trim()));
+}
+
+function quitWizard(skipConfirm) {
+  if (!skipConfirm && wizardHasProgress()) {
+    quitMask.classList.add('on');
+    return;
+  }
+  $('#name').value = '';
+  $('#brief').value = '';
+  $('#persona').value = '';
+  if (personas.length) { renderList(); show('#sList'); }
+  else { show('#s1'); }
+}
+
+document.querySelectorAll('.closeX[data-quit]').forEach(b => {
+  b.onclick = () => quitWizard(false);
+});
+
+$('#quitCancel').onclick = () => quitMask.classList.remove('on');
+$('#quitOk').onclick = () => {
+  quitMask.classList.remove('on');
+  quitWizard(true);
+};
+quitMask.onclick = e => { if (e.target === quitMask) quitMask.classList.remove('on'); };
 
 </script>
 </body>

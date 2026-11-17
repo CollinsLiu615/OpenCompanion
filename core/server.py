@@ -127,7 +127,7 @@ def api_test_connection():
 def api_refine():
     data = request.get_json(force=True) or {}
     try:
-        text = C.refine_persona(data.get("brief", ""))
+        text = C.refine_persona(data.get("brief", ""), name=data.get("name", ""))
         return jsonify({"ok": True, "persona": text})
     except Exception as e:
         return jsonify({"ok": False, "message": C._friendly_error(e)}), 400

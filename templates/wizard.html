@@ -36,6 +36,25 @@ button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)
                 border:2px solid var(--line)}
 .hidden{display:none}
 .tip{font-size:13px;color:var(--dim);margin-top:8px}
+
+.topbar{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+.titles{flex:1;min-width:0}
+.closeX{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+        background:#fff;color:#6b7280;font-size:15px;cursor:pointer;flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;padding:0;margin-top:2px}
+.closeX:hover{background:#f4f5f7;color:#1a1d23;border-color:#c9ced6}
+
+/* 放弃创建确认 */
+.confirmMask{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:100;
+             display:none;align-items:center;justify-content:center;padding:20px}
+.confirmMask.on{display:flex}
+.confirmBox{background:#fff;border-radius:16px;width:min(380px,100%);padding:22px;
+            box-shadow:0 12px 48px rgba(0,0,0,.18)}
+.confirmBox h3{margin:0 0 10px;font-size:16px}
+.confirmBox p{margin:0 0 18px;font-size:13.5px;line-height:1.8;color:#3a4048}
+.confirmFt{display:flex;gap:10px}
+.confirmFt button{flex:1;margin:0}
+.confirmFt .dangerBtn{background:#d93025;color:#fff}
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -48,8 +67,13 @@ button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)
 </head>
 <body>
 <div class="wrap">
-  <h1>创建你的 AI 伴侣</h1>
-  <div class="sub">三步就好。填完随时可以回来改。</div>
+  <div class="topbar">
+    <button class="closeX" id="btnCloseWizard" title="关闭">✕</button>
+    <div class="titles">
+      <h1>创建你的 AI 伴侣</h1>
+      <div class="sub">三步就好。填完随时可以回来改。</div>
+    </div>
+  </div>
 
   <div class="steps">
     <div id="s1" class="on">① 配置 API</div>
@@ -114,6 +138,18 @@ button.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)
       <button class="ghost" id="btn-again">让它重新写一遍</button>
     </div>
     <div class="msg" id="m3"></div>
+  </div>
+</div>
+
+<!-- 放弃创建确认 -->
+<div class="confirmMask" id="quitMask">
+  <div class="confirmBox">
+    <h3>放弃本次创建？</h3>
+    <p>将会丢失本次创建的全部进度，包括已填写的名字、描述和人设内容。</p>
+    <div class="confirmFt">
+      <button class="ghost" id="quitCancel">继续编辑</button>
+      <button class="dangerBtn" id="quitOk">放弃并退出</button>
+    </div>
   </div>
 </div>
 
@@ -183,7 +219,7 @@ $('#btn-refine').onclick = async () => {
   try {
     const r = await fetch('/api/persona/refine', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({brief})
+      body: JSON.stringify({brief, name: $('#name').value.trim()})
     });
     const d = await r.json();
     if (d.ok) {
@@ -234,6 +270,63 @@ $('#avatar').onchange = e => {
   const url = URL.createObjectURL(f);
   $('#av-preview').src = url;
 };
+
+/* ══════ 关闭向导 ══════ */
+const quitMask = $('#quitMask');
+
+function hasProgress() {
+  return !!($('#name').value.trim() || $('#brief').value.trim() ||
+            ($('#persona') && $('#persona').value.trim()));
+}
+
+/**
+ * 退出创建流程。
+ *
+ * 注意不能简单地跳到 /app：一个人设都没有时 /app 会立刻重定向回 /wizard，
+ * 用户看到的就是「点了 X 但什么都没有发生」。
+ * 所以这里先问后端有没有角色，没有就显示一个明确的退出页。
+ */
+async function exitWizard() {
+  try {
+    const list = await (await fetch('/api/personas')).json();
+    if (list && list.length) { location.href = '/app'; return; }
+  } catch(e) { /* 读不到就按没有处理 */ }
+  showExited();
+}
+
+function showExited() {
+  document.documentElement.innerHTML =
+    '<body style="background:#fff;color:#1a1d23;font:15px -apple-system,PingFang SC,sans-serif;'
+    + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+    + 'height:100vh;margin:0;gap:12px;text-align:center;padding:24px">'
+    + '<img src="/static/brand/icon-96.png" style="width:56px;height:56px;image-rendering:pixelated" alt="">'
+    + '<div style="font-size:16px;font-weight:600">已退出创建</div>'
+    + '<div style="font-size:13px;color:#6b7280;line-height:1.8;max-width:280px">'
+    + '你还没有创建任何伴侣。<br>可以先关掉这个页面，或者重新开始。</div>'
+    + '<a href="/wizard" style="margin-top:8px;color:#4b6ef5;font-size:13.5px">重新创建</a></body>';
+}
+
+$('#btnCloseWizard').onclick = () => {
+  // 什么都没填就直接退出，不打扰
+  if (!hasProgress()) { exitWizard(); return; }
+  quitMask.classList.add('on');
+};
+
+$('#quitCancel').onclick = () => quitMask.classList.remove('on');
+
+$('#quitOk').onclick = () => {
+  // 清空已填内容，避免下次进来还残留
+  $('#name').value = '';
+  $('#brief').value = '';
+  if ($('#persona')) $('#persona').value = '';
+  exitWizard();
+};
+
+quitMask.onclick = e => { if (e.target === quitMask) quitMask.classList.remove('on'); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && quitMask.classList.contains('on')) quitMask.classList.remove('on');
+});
+
 </script>
 </body>
 </html>

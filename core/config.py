@@ -230,20 +230,32 @@ PERSONA_ARCHITECT_PROMPT = """你是一位角色设计专家。用户会用一�
 不会做的事、不会说的话、遇到越界话题如何回应。
 
 要求：
+- **角色名字必须使用用户给定的名字，一字不差，不要另起名字或换称呼。**
 - 直接输出人设文档本身，不要任何前言、解释或"以下是"。
 - 具体、可执行，避免"善良""温柔"这类空泛形容词堆砌。
 - 用户描述里没提到的部分，做合理补充，但不要编造用户本人的隐私。
 - 全程使用中文。"""
 
 
-def refine_persona(brief: str, cfg: dict | None = None) -> str:
-    """把用户的一句话描述，用 AI 扩写成完整人设。"""
+def refine_persona(brief: str, cfg: dict | None = None, name: str = "") -> str:
+    """把用户的一句话描述，用 AI 扩写成完整人设。
+
+    name 必须一起传：只给描述的话模型不知道角色叫什么，会自己编一个名字，
+    导致生成的人设与用户设定的名字对不上。
+    """
     if not (brief or "").strip():
         raise RuntimeError("请先描述你想要的人设（哪怕一句话也行）")
+
+    parts = []
+    if (name or "").strip():
+        parts.append(f"角色名字：{name.strip()}")
+    parts.append(f"简短描述：{brief.strip()}")
+    user_msg = "\n".join(parts)
+
     return chat_completion(
         messages=[
             {"role": "system", "content": PERSONA_ARCHITECT_PROMPT},
-            {"role": "user", "content": brief.strip()},
+            {"role": "user", "content": user_msg},
         ],
         cfg=cfg,
         temperature=0.85,
