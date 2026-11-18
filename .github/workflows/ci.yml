@@ -34,19 +34,42 @@ jobs:
 
       - name: 检查硬编码服务器地址（Java）
         run: |
-          # 安卓 Java 代码里不应出现真实的硬编码 http(s) 地址。
-          # 排除两类误报：
-          #   1. 错误提示文案里的 "https:// 开头" 这类说明性文字
-          #   2. XML 命名空间 URI（schemas.android.com 等）
+          # 规则：安卓 Java 代码里不得出现硬编码的服务端地址。
+          # 用户的 API 请求必须发往自己填的 base_url，不能偷偷连别处。
+          #
+          # 允许的例外（白名单，需在 PR 中说明理由）：
+          #   1. api.github.com —— 检查更新，只读公开版本信息，
+          #      已在用户协议与 SECURITY.md 中披露，且用户可关闭
+          # 排除的误报：
+          #   2. "https:// 开头" 这类错误提示文案
+          #   3. XML 命名空间 URI（schemas.android.com 等）
           HITS=$(grep -rnE "https?://[a-zA-Z0-9]" --include="*.java" android/app/src/ \
                  | grep -vE "schemas\.android\.com|w3\.org|schemas\.xml\.org" \
-                 | grep -vE "https?:// 开头" || true)
+                 | grep -vE "https?:// 开头" \
+                 | grep -vE "api\\.github\\.com/repos/CollinsLiu615/OpenCompanion/releases" || true)
           if [ -n "$HITS" ]; then
-            echo "::error::Java 代码中发现硬编码 URL："
+            echo "::error::Java 代码中发现未授权的硬编码 URL："
             echo "$HITS"
+            echo ""
+            echo "如果这是有意为之，请在本步骤的白名单中登记并说明理由。"
             exit 1
           fi
-          echo "✓ Java 代码无硬编码 URL"
+          echo "✓ Java 代码无未授权的硬编码 URL"
+
+      - name: 检查版本检查地址是否与协议一致
+        run: |
+          # 版本检查是唯一的外连例外，必须与文档披露的一致。
+          # 若仓库名或地址被改动而文档没跟上，这里会失败。
+          if ! grep -q "api.github.com/repos/CollinsLiu615/OpenCompanion/releases/latest" \
+               android/app/src/com/opencompanion/app/MainActivity.java; then
+            echo "::error::版本检查地址与预期不符，请同步更新 SECURITY.md 与用户协议"
+            exit 1
+          fi
+          if ! grep -q "api.github.com" SECURITY.md; then
+            echo "::error::SECURITY.md 未披露版本检查的外部连接"
+            exit 1
+          fi
+          echo "✓ 版本检查地址已披露且一致"
 
       - name: 检查私钥泄漏
         run: |
