@@ -12,7 +12,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-lightgrey.svg)](#安装)
-[![Version](https://img.shields.io/badge/version-0.1.0--beta-orange.svg)](#)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](#)
 
 [Benzene AI Studio](https://space.bilibili.com/1968400182) · Eight Pixel · [@CollinsLiu615](https://github.com/CollinsLiu615)
 
