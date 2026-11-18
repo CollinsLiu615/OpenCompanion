@@ -456,7 +456,21 @@ header .bk{margin-left:auto;font-size:14px;color:var(--dim);padding:6px}
       <p>遇到问题、有建议，都欢迎来信：<br>
          <a href="mailto:collinsliu9@gmail.com" style="color:var(--accent)">collinsliu9@gmail.com</a></p>
       <h4>版本</h4>
-      <p><code>v0.1.0</code></p>
+      <p><code id="verText">v0.1.0</code>
+         <span id="updateBadge" style="display:none;margin-left:8px;padding:2px 8px;
+               border-radius:10px;background:#fdecec;color:#c62828;font-size:11.5px;
+               font-weight:600">有新版本</span></p>
+      <div id="updateArea" style="margin-top:8px"></div>
+      <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer">
+        <input type="checkbox" id="autoUpdate" checked
+               style="width:20px;height:20px;flex-shrink:0;accent-color:var(--accent)">
+        <span style="font-size:13.5px;color:#1a1d23">检查更新</span>
+      </label>
+      <div class="hint" id="updateHint">
+        开启后，启动时会向 GitHub 查询是否有新版本。这是本应用唯一会主动连接的外部地址，
+        只读取公开的版本信息，不上传任何数据。
+      </div>
+      <button class="sbtn" id="btnCheckUpdate" style="margin-top:10px">立即检查</button>
 
       <h4>法律条款</h4>
       <p><a href="#" id="btnTerms"
@@ -1410,7 +1424,8 @@ const AGREEMENT_HTML = `
 <p><strong>AI 生成内容由算法自动产生，不代表开发者观点，且可能存在错误、偏差或不适当之处。</strong>您应自行甄别，不应作为医疗、法律、金融、投资等专业决策依据。AI 对话另一方并非真实人类，不应将其情感依赖替代现实社会交往；如感心理不适，请及时寻求专业帮助。</p>
 <h3>五、数据存储与隐私</h3>
 <p><strong>本软件采用本地存储架构。</strong>除下述情形外，您的全部内容仅存储于本设备，开发者不收集、不上传、不备份、不访问您的任何用户内容，不出售不出租不交换您的个人信息。下列情形数据可能经第三方传输：<strong>（1）调用第三方 AI 服务时，人设与对话内容将被发送至您配置的第三方；（2）生成人设时，您填写的名字与描述同样会发送至该第三方。</strong>定时通知不经过任何第三方服务，也不经过开发者服务器。本软件不设账号系统，不收集手机号、邮箱、身份证件，不进行跨站追踪。本地数据安全取决于您设备的安全状况，设备丢失或被恶意软件攻击导致的数据泄露，开发者不承担责任。</p>
-<h3>六、定位与通知</h3>
+<p><strong>关于检查更新：</strong>本软件会向 GitHub 查询是否有新版本，这是除你配置的 AI 接口外<strong>唯一</strong>的外部连接。该请求只读取公开的版本号与下载地址，<strong>不上传任何数据</strong>，也不经过开发者控制的服务器。你可以在「关于 → 检查更新」中关闭此功能，关闭后本软件不再发起该请求。</p>
+    <h3>六、定位与通知</h3>
 <p><strong>本版本不收集、不使用任何位置信息</strong>，未申请定位权限，也不包含推送服务。定时通知为<strong>本地通知</strong>，您可以自行选择两种内容模式：</p>
 <p>（1）<strong>固定文本</strong>（默认关闭 AI）：到点直接弹出您填写的文字，<strong>不联网、不调用任何服务</strong>；<br>
 （2）<strong>AI 生成</strong>（需您在每条问候中手动开启）：到点由本机将<strong>该角色的设定与该条问候主题</strong>发送至您配置的第三方 AI 服务以生成回复，再弹出生成结果。若此时无网络或接口出错，将自动改为弹出您填写的原文。</p>
@@ -1464,7 +1479,127 @@ $('#btnAgain').onclick = () => {
 /* ══════════ 启动 ══════════ */
 runSplash();
 
+/* ══════════ 版本检查 ══════════ */
+const GH_RELEASES = "https://github.com/CollinsLiu615/OpenCompanion/releases";
+
+/**
+ * 比较版本号。返回 true 表示 remote 比 current 新。
+ * 兼容 0.1.0 / v0.1.0 / 0.1.0-beta 这类写法。
+ */
+function isNewer(remote, current) {
+  const norm = v => String(v || '').replace(/^v/i, '').split('-')[0]
+      .split('.').map(x => parseInt(x, 10) || 0);
+  const a = norm(remote), b = norm(current);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] || 0, y = b[i] || 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return false;
+}
+
+function currentVersion() {
+  try {
+    if (hasNative && Native.getVersion) return Native.getVersion();
+  } catch(e) {}
+  return '0.1.0';
+}
+
+function updateEnabled() {
+  return store.get('checkUpdate') !== false;   // 默认开启
+}
+
+/** 渲染检查结果 */
+function renderUpdate(info) {
+  const area = $('#updateArea');
+  const badge = $('#updateBadge');
+  if (!area) return;
+
+  const cur = currentVersion();
+  if ($('#verText')) $('#verText').textContent = 'v' + cur;
+
+  if (!info) { area.innerHTML = ''; if (badge) badge.style.display = 'none'; return; }
+
+  if (info.ok === false) {
+    area.innerHTML = '<div class="hint" style="color:#d93025">检查失败：' + (info.error || '网络错误') + '</div>';
+    return;
+  }
+  if (!info.tag) {
+    area.innerHTML = '<div class="hint">还没有发布版本</div>';
+    return;
+  }
+
+  if (isNewer(info.tag, cur)) {
+    if (badge) badge.style.display = 'inline-block';
+    area.innerHTML =
+      '<div style="padding:10px 12px;background:#f0f7ff;border-radius:9px;font-size:13px">'
+      + '<div style="font-weight:600;margin-bottom:6px">发现新版本 ' + esc(info.tag) + '</div>'
+      + '<div style="display:flex;gap:8px;margin-top:8px">'
+      + (info.apk ? '<button class="sbtn" id="btnGotoDownload" style="flex:1;margin:0">去下载</button>' : '')
+      + '<button class="sbtn" id="btnGotoReleases" style="flex:1;margin:0">查看更新说明</button>'
+      + '</div></div>';
+    if ($('#btnGotoDownload')) {
+      $('#btnGotoDownload').onclick = () => openExternal(info.apk || GH_RELEASES);
+    }
+    $('#btnGotoReleases').onclick = () => openExternal(info.page || GH_RELEASES);
+  } else {
+    if (badge) badge.style.display = 'none';
+    area.innerHTML = '<div class="hint" style="color:#16a34a">已是最新版本</div>';
+  }
+}
+
+function openExternal(url) {
+  if (!url) return;
+  if (hasNative && Native.openUrl) { try { Native.openUrl(url); return; } catch(e) {} }
+  window.open(url, '_blank', 'noopener');
+}
+
+let updateChecking = false;
+function checkUpdate(manual) {
+  if (updateChecking) return;
+  if (!manual && !updateEnabled()) return;
+
+  const area = $('#updateArea');
+  if (manual && area) area.innerHTML = '<div class="hint">正在检查…</div>';
+  updateChecking = true;
+
+  if (!(hasNative && Native.checkUpdate)) {
+    updateChecking = false;
+    if (area) area.innerHTML = '<div class="hint">当前环境不支持自动检查，'
+        + '<a href="#" id="btnGotoReleases2" style="color:var(--accent);text-decoration:underline">'
+        + '到 GitHub 查看</a></div>';
+    if ($('#btnGotoReleases2')) {
+      $('#btnGotoReleases2').onclick = e => { e.preventDefault(); openExternal(GH_RELEASES); };
+    }
+    return;
+  }
+
+  window.__ocUpdateDone = (id, info) => {
+    updateChecking = false;
+    renderUpdate(info);
+  };
+  try {
+    Native.checkUpdate('u' + Date.now());
+  } catch(e) {
+    updateChecking = false;
+    renderUpdate({ ok:false, error:e.message });
+  }
+}
+
 /* ══════════ 协议全文查看 ══════════ */
+// 检查更新开关（默认开启）
+if ($('#autoUpdate')) {
+  $('#autoUpdate').checked = updateEnabled();
+  $('#autoUpdate').onchange = e => {
+    store.set('checkUpdate', e.target.checked);
+    if (e.target.checked) checkUpdate(false);
+    else renderUpdate(null);
+  };
+}
+if ($('#btnCheckUpdate')) {
+  $('#btnCheckUpdate').onclick = () => checkUpdate(true);
+}
+
 const termsSheet = $('#termsSheet');
 $('#btnTerms').onclick = e => {
   e.preventDefault();
@@ -1617,6 +1752,13 @@ $('#quitOk').onclick = () => {
   quitWizard(true);
 };
 quitMask.onclick = e => { if (e.target === quitMask) quitMask.classList.remove('on'); };
+
+/* ══════════ 启动：延迟检查更新 ══════════ */
+// 放在最后执行，确保前置的函数与 DOM 都已就绪。
+// 延迟 3 秒，不拖慢首屏动画与列表渲染。
+setTimeout(() => {
+  try { checkUpdate(false); } catch (e) { /* 检查失败不能影响使用 */ }
+}, 3000);
 
 </script>
 </body>

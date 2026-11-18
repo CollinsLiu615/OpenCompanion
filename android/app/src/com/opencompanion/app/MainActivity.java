@@ -260,6 +260,107 @@ public class MainActivity extends Activity {
             return result.toString();
         }
 
+        /** 当前 App 版本名，例如 "0.1.0"。 */
+        @JavascriptInterface
+        public String getVersion() {
+            try {
+                return getPackageManager()
+                        .getPackageInfo(getPackageName(), 0).versionName;
+            } catch (Exception e) {
+                return "";
+            }
+        }
+
+        /**
+         * 查询 GitHub 上是否有新版本。
+         *
+         * 这是本应用**唯一**会主动连向第三方服务器的请求，且：
+         *   - 只在用户开启「检查更新」时发起（默认开启，设置里可关）
+         *   - 只请求公开的 releases/latest，不携带任何用户数据
+         *   - 不经过开发者自己的服务器
+         * 结果通过 window.__ocUpdateDone 回调给前端。
+         */
+        @JavascriptInterface
+        public void checkUpdate(final String callbackId) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String result;
+                    try {
+                        result = fetchLatestRelease();
+                    } catch (Exception e) {
+                        result = "{\"ok\":false,\"error\":\""
+                                + e.getClass().getSimpleName() + "\"}";
+                    }
+                    final String payload = result;
+                    web.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            web.evaluateJavascript(
+                                    "window.__ocUpdateDone && window.__ocUpdateDone(\""
+                                            + callbackId + "\"," + payload + ")", null);
+                        }
+                    });
+                }
+            }).start();
+        }
+
+        /** 请求 GitHub releases/latest，返回 JSON 字符串。 */
+        private String fetchLatestRelease() throws Exception {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(
+                        "https://api.github.com/repos/CollinsLiu615/OpenCompanion/releases/latest");
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept", "application/vnd.github+json");
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+
+                int code = conn.getResponseCode();
+                // 404 = 仓库还没有 Release，不是错误
+                if (code == 404) return "{\"ok\":true,\"tag\":\"\"}";
+                if (code < 200 || code >= 300) return "{\"ok\":false,\"error\":\"HTTP " + code + "\"}";
+
+                java.io.InputStream is = conn.getInputStream();
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                byte[] buf = new byte[4096];
+                int n;
+                while ((n = is.read(buf)) > 0) bos.write(buf, 0, n);
+                String raw = bos.toString("UTF-8");
+
+                org.json.JSONObject obj = new org.json.JSONObject(raw);
+                String tag = obj.optString("tag_name", "");
+                String page = obj.optString("html_url", "");
+                String notes = obj.optString("body", "");
+                if (notes.length() > 2000) notes = notes.substring(0, 2000);
+
+                // 找 .apk 附件
+                String apkUrl = "";
+                org.json.JSONArray assets = obj.optJSONArray("assets");
+                if (assets != null) {
+                    for (int i = 0; i < assets.length(); i++) {
+                        org.json.JSONObject a = assets.getJSONObject(i);
+                        String nm = a.optString("name", "");
+                        if (nm.toLowerCase().endsWith(".apk")) {
+                            apkUrl = a.optString("browser_download_url", "");
+                            break;
+                        }
+                    }
+                }
+
+                org.json.JSONObject out = new org.json.JSONObject();
+                out.put("ok", true);
+                out.put("tag", tag);
+                out.put("page", page);
+                out.put("apk", apkUrl);
+                out.put("notes", notes);
+                return out.toString();
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }
+
         /**
          * 打开外部链接。优先用 B 站 App（如果能处理该链接），
          * 否则回落到浏览器。
