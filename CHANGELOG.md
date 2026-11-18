@@ -3,6 +3,21 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.1-beta] - 2026-11-18
+
+### 优化
+
+- **启用 prompt 缓存**：system prompt 原先把精确到分钟的时间放在最前面，
+  导致每次请求前缀都不同，服务商的 prompt 缓存（OpenAI automatic caching /
+  DeepSeek context caching / Anthropic prompt caching）全部失效。
+  改为静态人设在前、时间在末尾后，跨请求的公共前缀从约 7% 提升到 87%
+  以上（人设越长比例越高），这部分输入 token 可被缓存，降低费用。
+- **上下文改为按 token 预算管理**：原先按条数截断（取最近 40 条、存 200 条）。
+  同样 40 条，闲聊可能只有 2k token，长回复能到 30k，导致要么窗口没用满、
+  要么请求直接超限；且超出部分被丢弃，角色会忘记早先的对话。
+  现在按 token 估算取历史，历史涨到阈值后自动把更早的对话压缩成摘要，
+  作为背景注入，角色能记住更远的约定与细节。
+
 ## [0.1.0-beta] - 2026-11-17
 
 首个公开测试版。

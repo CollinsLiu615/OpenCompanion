@@ -835,16 +835,149 @@ function addBubble(text, cls) {
 }
 function scrollBottom() { const l = $('#log'); l.scrollTop = l.scrollHeight; }
 
+/* ══════════ 上下文管理 ══════════ */
+// 按 token 而非条数控制：同样 40 条，闲聊可能只有 2k token，
+// 长回复能到 30k，按条数切会导致「要么没用满、要么直接超限」，
+// 且超出部分被丢弃后角色会忘记早先的对话。
+//
+// 不引入 tiktoken：它要下载词表、且各厂商分词器不同，
+// 用保守的启发式估算反而更稳（宁可多估，避免超限）。
+
+const CONTEXT_TOKEN_BUDGET = 6000;     // 送入模型的历史预算
+const SUMMARY_TRIGGER_TOKENS = 4000;   // 历史超过这个值就压缩
+const KEEP_RECENT_TOKENS = 2000;       // 压缩后保留最近多少原文
+const MAX_HISTORY_ITEMS = 400;         // 硬上限，防止存储无限膨胀
+
+/**
+ * 粗略估算 token 数。
+ * 中日韩字符按 1 token/字，其余按 3 字符/token（偏高估计，避免超限）。
+ */
+function estimateTokens(text) {
+  if (!text) return 0;
+  let cjk = 0, other = 0;
+  for (const ch of text) {
+    const c = ch.codePointAt(0);
+    if ((c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3040 && c <= 0x30ff) ||
+        (c >= 0xac00 && c <= 0xd7af)) {
+      cjk++;
+    } else {
+      other++;
+    }
+  }
+  return cjk + Math.max(1, Math.floor(other / 3));
+}
+
+function msgTokens(m) {
+  return estimateTokens(m && m.content) + 4;   // 4 为角色标记开销
+}
+
+/** 从最近往前取消息直到用满预算，返回时间正序数组。 */
+function takeRecentWithin(history, budget) {
+  const picked = [];
+  let used = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const t = msgTokens(history[i]);
+    if (used + t > budget) break;
+    picked.unshift(history[i]);
+    used += t;
+  }
+  // 确保以 user 开头，避免孤立的 assistant 消息
+  while (picked.length && picked[0].role !== 'user') picked.shift();
+  return picked;
+}
+
+/**
+ * 把较早的对话压缩成要点。
+ * AI 失败时退回机械截取，保证对话不中断。
+ */
+async function summarizeHistory(older, persona) {
+  if (!older.length) return '';
+
+  const lines = older.map(m => {
+    const role = m.role === 'user' ? '对方' : (persona.name || '我');
+    const text = (m.content || '').trim().replace(/\n/g, ' ');
+    return `${role}: ${text}`;
+  });
+
+  const r = await aiCall([
+    {role:'system', content:
+      '你是一个对话摘要助手。把下面的对话压缩成简洁的要点，' +
+      '保留：双方的重要信息、约定、情绪变化、关系进展。' +
+      '用第三人称陈述，不超过 300 字。不要评论，只输出摘要。'},
+    {role:'user', content: lines.join('\n')}
+  ]);
+
+  if (r.ok && r.text && r.text.trim()) return r.text.trim();
+
+  // 兜底：机械截取
+  const bits = older.slice(-20)
+    .map(m => (m.content || '').trim().replace(/\n/g, ' '))
+    .filter(Boolean)
+    .map(t => t.slice(0, 40));
+  return '（较早的对话）' + bits.join(' / ');
+}
+
+/**
+ * 构建发给模型的历史，必要时触发滚动摘要。
+ * 可能就地修改 persona（写入 summary），调用方需保存。
+ */
+async function prepareContext(persona) {
+  let history = persona.history || [];
+  const total = history.reduce((sum, m) => sum + msgTokens(m), 0);
+
+  if (total > SUMMARY_TRIGGER_TOKENS && history.length > 6) {
+    const recent = takeRecentWithin(history, KEEP_RECENT_TOKENS);
+    const cut = history.length - recent.length;
+    const older = history.slice(0, cut);
+
+    if (older.length) {
+      const newSummary = await summarizeHistory(older, persona);
+      if (newSummary) {
+        const old = (persona.summary || '').trim();
+        let merged = old ? (old + '\n' + newSummary) : newSummary;
+        // 摘要本身也限长，防止无限累积
+        if (estimateTokens(merged) > 1200) merged = merged.slice(-2400);
+        persona.summary = merged;
+        persona.history = recent;
+        persona.summarizedCount = (persona.summarizedCount || 0) + older.length;
+        history = recent;
+      }
+    }
+  }
+
+  return takeRecentWithin(history, CONTEXT_TOKEN_BUDGET);
+}
+
+/**
+ * 构建 system prompt。
+ *
+ * **前缀必须稳定**：同一角色无论何时请求，开头内容都要完全一致，
+ * 否则服务商的 prompt 缓存（OpenAI / DeepSeek / Anthropic 等）
+ * 全部失效 —— 它们的判据都是「请求前缀字节级相同」。
+ *
+ * 所以：人设等固定内容放最前，随时间变化的时间戳放最后。
+ */
 function systemPrompt(p) {
+  // ── 静态部分：同一角色永远相同，可被缓存 ──
+  let staticPart = `你现在扮演「${p.name}」。人设如下，请完全按照它回应：\n\n`
+       + `${p.persona || p.brief}\n\n`
+       + `始终以角色身份说话，不要提及自己是 AI 模型。回答自然口语化，不用列表，不长篇大论。`;
+
+  // ── 摘要部分：变动频率低（仅在压缩时更新）──
+  const summ = (p.summary || '').trim();
+  if (summ) {
+    staticPart += `\n\n【此前对话的摘要】（用于延续记忆，不需要在回复里复述）\n${summ}`;
+  }
+
+  // ── 动态部分：放末尾，不破坏前面的缓存前缀 ──
   const now = new Date();
   const wd = '日一二三四五六'[now.getDay()];
   const ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-'
            + String(now.getDate()).padStart(2,'0') + ' '
            + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  return `【当前时间】${ts} 星期${wd}\n`
-       + `你可以参考这个时间调整语气，但不要念时间数据。\n\n`
-       + `你现在扮演「${p.name}」。人设如下，请完全按照它回应：\n\n${p.persona || p.brief}\n\n`
-       + `始终以角色身份说话，不要提及自己是 AI 模型。回答自然口语化，不用列表，不长篇大论。`;
+  return staticPart
+       + `\n\n【当前时间】${ts} 星期${wd}\n`
+       + `你可以参考这个时间调整语气，但不要念时间数据。`;
 }
 
 async function doSend() {
@@ -855,8 +988,12 @@ async function doSend() {
   addBubble(text, 'me'); scrollBottom();
   const think = addBubble('正在输入…', 'sys');
 
+  // 按 token 预算取历史，必要时先做滚动摘要（会更新 cur.summary）
+  cur.history = cur.history || [];
+  const context = await prepareContext(cur);
+
   const msgs = [{role:'system', content: systemPrompt(cur)}];
-  (cur.history || []).slice(-40).forEach(m => msgs.push({role: m.role, content: m.content}));
+  context.forEach(m => msgs.push({role: m.role, content: m.content}));
   msgs.push({role:'user', content: text});
 
   const r = await aiCall(msgs);
@@ -865,7 +1002,9 @@ async function doSend() {
     addBubble(r.text, 'ta');
     cur.history.push({role:'user', content: text});
     cur.history.push({role:'assistant', content: r.text});
-    if (cur.history.length > 200) cur.history = cur.history.slice(-200);
+    if (cur.history.length > MAX_HISTORY_ITEMS) {
+      cur.history = cur.history.slice(-MAX_HISTORY_ITEMS);
+    }
     store.set('personas', personas);
   } else {
     addBubble('出错了：' + r.error, 'sys');
