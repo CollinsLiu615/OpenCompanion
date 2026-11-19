@@ -20,3 +20,6 @@ templates/
 static/
 desktop/
 requirements.txt
+
+# 发版用临时文件（APK 由 build.sh 生成，Release 上已上传）
+dist/
