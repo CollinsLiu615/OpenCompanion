@@ -30,6 +30,8 @@
 - 对话导出、清除记录、删除角色、注销账号
 - 支持任何 OpenAI 兼容接口（OpenAI / DeepSeek / Moonshot / 智谱 / 通义 / 本地 Ollama 等）
 - 用户协议随时可回看
+- **检查更新**：启动时自动查询是否有新版本，发现后显示提示与下载入口。
+  默认开启，可在「关于 → 检查更新」关闭；关闭后不再发起任何请求
 
 ### 本版优化
 
@@ -42,7 +44,9 @@
 - API Key、人设与聊天记录经 Android Keystore（AES-256-GCM）加密存储，密钥不可导出
 - 禁止应用备份导出（`allowBackup=false`）
 - 默认禁止明文 HTTP，仅放行本地回环地址
-- 无埋点、无自有服务器，请求只发往你填写的 `base_url`
+- 无埋点、无自有服务器
+- 网络请求只发往两处：**你自己填写的 `base_url`**，以及**查询版本时的
+  `api.github.com`**（只读取公开版本信息，不上传数据，可关闭）
 - 权限精简至 9 项
 
 详见 [SECURITY.md](https://github.com/CollinsLiu615/OpenCompanion/blob/main/SECURITY.md)。
