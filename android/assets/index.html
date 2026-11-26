@@ -15,52 +15,428 @@
      - 动画统一 cubic-bezier(.2,.8,.2,1)，有「弹入」的物理感
    这些都是纯 CSS，不依赖任何外部资源，离线可用。
    ═══════════════════════════════════════════════════════ */
-:root{
-  --bg:#0d0f14;
-  --bg2:#141821;
-  --card:#171b24;
-  --card2:#1e2430;
-  --line:#262c38;
-  --line2:#333b4a;
-  --fg:#f2f4f8;
-  --dim:#8b93a1;
-  --dim2:#5f6775;
-  --accent:#c41d3b;
-  --accent2:#e2334f;
-  --accentGlow:rgba(196,29,59,.35);
-  --ok:#2ecc8f;
-  --err:#ff5468;
-  --ease:cubic-bezier(.2,.8,.2,1);
+
+
+/* ═══════════════════════════════════════════════════════
+   主题 = 风格包
+   每个主题不只是换颜色，而是一整套看得到的「语言」：
+     色板 / 字体 / 圆角 / 描边 / 纹理 / 动效性格
+   只改 CSS 变量，所有板块自动跟随，不需要为每个主题写一套布局。
+
+   变量分三组：
+     ① 颜色   bg card line fg dim accent...
+     ② 形状   --r 圆角  --bd 描边宽  --shadow 投影
+     ③ 气质   --font 字体  --dur 动效时长  --bounce 弹性
+              --tex 背景纹理层
+   ═══════════════════════════════════════════════════════ */
+
+/* ① 赤潮 —— 近黑底 + 赤红，取自游戏官网 */
+html[data-theme="crimson"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#0d0f14;--bg2:#141821;--card:#171b24;--card2:#1e2430;
+  --line:#262c38;--line2:#333b4a;
+  --fg:#f2f4f8;--dim:#8b93a1;--dim2:#5f6775;
+  --accent:#c41d3b;--accent2:#e2334f;--accentGlow:rgba(196,29,59,.35);
+  --ok:#2ecc8f;--err:#ff5468;
+  --glowA:rgba(196,29,59,.16);--glowB:rgba(196,29,59,.10);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.5;--bounce:.16;
+  --shadow:0 6px 20px -6px var(--accentGlow);
+  --tex:none;--texOp:0;
+  --brandInv:invert(1);
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
 }
+
+/* ② 包豪斯 —— 红黄蓝三原色，几何色块，无衬线粗体 */
+html[data-theme="bauhaus"]{
+  --bg:#f2ede4;--bg2:#e8e1d4;--card:#ffffff;--card2:#f7f2e8;
+  --line:#1a1a1a;--line2:#1a1a1a;
+  --fg:#111111;--dim:#5a5348;--dim2:#8a8172;
+  --accent:#d0202b;--accent2:#1f4fa8;--accentGlow:rgba(208,32,43,.28);
+  --ok:#1b7a3e;--err:#c81e1e;
+  --glowA:rgba(240,180,40,.30);--glowB:rgba(31,79,168,.14);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:2.5px;
+  --font:system-ui,"Helvetica Neue",Arial,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.42;--bounce:.2;
+  --shadow:5px 5px 0 var(--line);
+  --tex:repeating-linear-gradient(45deg,transparent 0 8px,rgba(208,32,43,.035) 8px 9px);
+  --texOp:1;
+  --brandInv:none;
+  --hdWeight:800;--hdLs:.02em;--hdTransform:uppercase;
+}
+
+/* ③ 构成主义 —— 黑红斜切，对角线，宣传画气质 */
+html[data-theme="constructivism"]{
+  --bg:#e8e4da;--bg2:#ddd7c9;--card:#f4f0e6;--card2:#e6e0d3;
+  --line:#16120f;--line2:#16120f;
+  --fg:#100d0a;--dim:#554b42;--dim2:#8b7f71;
+  --accent:#c8102e;--accent2:#100d0a;--accentGlow:rgba(200,16,46,.3);
+  --ok:#1c6b3a;--err:#c8102e;
+  --glowA:rgba(200,16,46,.16);--glowB:rgba(16,13,10,.08);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:2.5px;
+  --font:"Helvetica Neue",Arial,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.38;--bounce:.1;
+  --shadow:6px 6px 0 var(--accent);
+  --tex:repeating-linear-gradient(-45deg,transparent 0 22px,rgba(200,16,46,.06) 22px 26px);
+  --texOp:1;
+  --brandInv:none;
+  --hdWeight:900;--hdLs:-.02em;--hdTransform:uppercase;
+}
+
+/* ④ 达达主义 —— 拼贴、歪斜、杂色，反秩序 */
+html[data-theme="dada"]{
+  --bg:#f4f1e8;--bg2:#e9e4d6;--card:#fffdf6;--card2:#efe9da;
+  --line:#22201d;--line2:#3a362f;
+  --fg:#1a1815;--dim:#5c554a;--dim2:#8f8778;
+  --accent:#e8452c;--accent2:#1f6feb;--accentGlow:rgba(232,69,44,.3);
+  --ok:#2f7d4f;--err:#d92d20;
+  --glowA:rgba(232,69,44,.20);--glowB:rgba(31,111,235,.16);
+  --r:2px;--r-lg:3px;--r-pill:2px;--bd:2px;
+  --font:"Courier New",Courier,"PingFang SC",monospace;
+  --fontHd:Georgia,"Times New Roman","Songti SC",serif;
+  --dur:.55;--bounce:.35;
+  --shadow:3px 3px 0 var(--line);
+  --tex:repeating-linear-gradient(90deg,transparent 0 11px,rgba(34,32,29,.05) 11px 12px),
+        repeating-linear-gradient(0deg,transparent 0 11px,rgba(34,32,29,.05) 11px 12px);
+  --texOp:1;
+  --brandInv:none;
+  --hdWeight:900;--hdLs:.01em;--hdTransform:none;
+}
+/* 达达的歪斜：卡片交替倾斜，制造拼贴错位感 */
+html[data-theme="dada"] .p:nth-child(odd){transform:rotate(-.7deg)}
+html[data-theme="dada"] .p:nth-child(even){transform:rotate(.6deg)}
+html[data-theme="dada"] h1,html[data-theme="dada"] h2{transform:rotate(-1.2deg)}
+html[data-theme="dada"] .m{border:2px solid var(--line)}
+
+/* ⑤ 像素风 —— 8bit，硬边，无抗锯齿感的等宽字 */
+html[data-theme="pixel"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#16162a;--bg2:#1c1c33;--card:#22223f;--card2:#2a2a4d;
+  --line:#3d3d6b;--line2:#55558c;
+  --fg:#e8e8ff;--dim:#9a9ac4;--dim2:#6a6a9a;
+  --accent:#3ddc84;--accent2:#5ae89c;--accentGlow:rgba(61,220,132,.32);
+  --ok:#3ddc84;--err:#ff5f6d;
+  --glowA:rgba(61,220,132,.13);--glowB:rgba(120,90,255,.13);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:3px;
+  --font:"SFMono-Regular",Menlo,Consolas,"Courier New","PingFang SC",monospace;
+  --fontHd:var(--font);
+  --dur:.34;--bounce:.24;
+  --shadow:4px 4px 0 rgba(0,0,0,.55);
+  --tex:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);
+  --texOp:1;
+  --brandInv:invert(1);
+  --hdWeight:700;--hdLs:.04em;--hdTransform:uppercase;
+}
+html[data-theme="pixel"] .p,
+html[data-theme="pixel"] .sbtn,
+html[data-theme="pixel"] .m{border-style:solid}
+/* 像素风：圆角一律去掉，图标放大一档，做出粗颗粒感 */
+html[data-theme="pixel"] .av,
+html[data-theme="pixel"] .p .ph,
+html[data-theme="pixel"] #setAv{border-radius:0!important;border-width:3px}
+
+/* ⑥ 水墨 —— 宣纸、墨色、留白，衬线字 */
+html[data-theme="ink"]{
+  --bg:#f3f0e8;--bg2:#e9e5da;--card:#faf8f1;--card2:#efebdf;
+  --line:#cfc9ba;--line2:#a8a08c;
+  --fg:#22201b;--dim:#6b665b;--dim2:#9a9284;
+  --accent:#2b2b2b;--accent2:#8c2b2b;--accentGlow:rgba(43,43,43,.2);
+  --ok:#3a6b4a;--err:#9c2a2a;
+  --glowA:rgba(43,43,43,.07);--glowB:rgba(140,43,43,.06);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1px;
+  --font:"Songti SC","STSong",Georgia,"Noto Serif CJK SC",serif;
+  --fontHd:var(--font);
+  --dur:.62;--bounce:.06;
+  --shadow:0 2px 10px -4px rgba(34,32,27,.2);
+  /* 纸纤维纹理 */
+  --tex:repeating-linear-gradient(88deg,transparent 0 3px,rgba(34,32,27,.022) 3px 4px),
+        repeating-linear-gradient(2deg,transparent 0 5px,rgba(34,32,27,.018) 5px 6px);
+  --texOp:1;
+  --brandInv:none;
+  --hdWeight:400;--hdLs:.12em;--hdTransform:none;
+}
+/* 水墨：正文用宋体，行距放宽，字母间距拉开 */
+html[data-theme="ink"] body{letter-spacing:.02em}
+
+/* ⑦ 故障艺术 —— 青品红错位，噪点，扫描线 */
+html[data-theme="glitch"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#0a0a0f;--bg2:#101018;--card:#15151f;--card2:#1c1c2a;
+  --line:#2a2a3d;--line2:#3d3d55;
+  --fg:#f0f0ff;--dim:#8a8aa8;--dim2:#5c5c78;
+  --accent:#00fff0;--accent2:#ff0066;--accentGlow:rgba(0,255,240,.32);
+  --ok:#00e07a;--err:#ff0055;
+  --glowA:rgba(0,255,240,.10);--glowB:rgba(255,0,102,.12);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:"SFMono-Regular",Menlo,Consolas,monospace;
+  --fontHd:var(--font);
+  --dur:.3;--bounce:.3;
+  --shadow:2px 0 0 rgba(255,0,102,.5),-2px 0 0 rgba(0,255,240,.5);
+  --tex:repeating-linear-gradient(0deg,rgba(0,255,240,.045) 0 1px,transparent 1px 3px);
+  --texOp:1;
+  --brandInv:invert(1);
+  --hdWeight:800;--hdLs:.02em;--hdTransform:uppercase;
+}
+/* 故障标题：双向色差 */
+html[data-theme="glitch"] h1,html[data-theme="glitch"] h2{
+  text-shadow:2px 0 rgba(255,0,102,.75),-2px 0 rgba(0,255,240,.75);
+}
+html[data-theme="glitch"] .m.me{
+  background:linear-gradient(135deg,rgba(0,255,240,.18),rgba(255,0,102,.18));
+  border:1px solid rgba(0,255,240,.45);
+}
+
+/* ⑧ 液体玻璃 —— 毛玻璃、模糊、柔和渐变、大圆角 */
+html[data-theme="glass"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#12141d;--bg2:#181a26;--card:rgba(255,255,255,.07);--card2:rgba(255,255,255,.11);
+  --line:rgba(255,255,255,.14);--line2:rgba(255,255,255,.24);
+  --fg:#f6f7ff;--dim:#a6acc4;--dim2:#71788f;
+  --accent:#7c8dff;--accent2:#a78bfa;--accentGlow:rgba(124,141,255,.4);
+  --ok:#4ade80;--err:#fb7185;
+  --glowA:rgba(124,141,255,.22);--glowB:rgba(167,139,250,.20);
+  --r:18px;--r-lg:26px;--r-pill:999px;--bd:1px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.58;--bounce:.22;
+  --shadow:0 12px 40px -12px rgba(0,0,0,.6);
+  --tex:radial-gradient(circle at 20% 0%,rgba(124,141,255,.16),transparent 55%),
+        radial-gradient(circle at 85% 100%,rgba(167,139,250,.14),transparent 55%);
+  --texOp:1;
+  --brandInv:invert(1);
+  --hdWeight:800;--hdLs:-.02em;--hdTransform:none;
+}
+html[data-theme="glass"] .p,
+html[data-theme="glass"] .sbtn,
+html[data-theme="glass"] .m{
+  backdrop-filter:blur(18px) saturate(1.4);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);
+}
+
+/* ⑨ 斯堪的纳维亚 —— 极简、柔和、大量留白 */
+html[data-theme="nordic"]{
+  --bg:#eef1f0;--bg2:#e4e8e6;--card:#ffffff;--card2:#f4f7f6;
+  --line:#d6dcda;--line2:#b8c2be;
+  --fg:#1f2b28;--dim:#5f6d69;--dim2:#8d9a96;
+  --accent:#3d6b5c;--accent2:#57897a;--accentGlow:rgba(61,107,92,.22);
+  --ok:#3d8a5c;--err:#bd4f3f;
+  --glowA:rgba(61,107,92,.07);--glowB:rgba(87,137,122,.05);
+  --r:10px;--r-lg:16px;--r-pill:999px;--bd:1px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.55;--bounce:.08;
+  --shadow:0 4px 18px -8px rgba(31,43,40,.18);
+  --tex:radial-gradient(ellipse at 0% 0%,rgba(255,255,255,.9),transparent 60%);
+  --texOp:1;
+  --brandInv:none;
+  --hdWeight:600;--hdLs:-.02em;--hdTransform:none;
+}
+
+/* ⑩ 终端 —— 复古命令行，荧光绿等宽字 */
+html[data-theme="terminal"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#000a00;--bg2:#001200;--card:#001a00;--card2:#002400;
+  --line:#004d00;--line2:#007700;
+  --fg:#33ff33;--dim:#1faa1f;--dim2:#0f7a0f;
+  --accent:#33ff33;--accent2:#66ff66;--accentGlow:rgba(51,255,51,.35);
+  --ok:#33ff33;--err:#ff3b30;
+  --glowA:rgba(51,255,51,.10);--glowB:rgba(51,255,51,.06);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1px;
+  --font:"SFMono-Regular",Menlo,Consolas,monospace;
+  --fontHd:var(--font);
+  --dur:.28;--bounce:.05;
+  --shadow:0 0 8px rgba(51,255,51,.4);
+  --tex:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.28) 2px 3px);
+  --texOp:1;
+  --brandInv:invert(1) sepia(1) saturate(6) hue-rotate(75deg);
+  --hdWeight:700;--hdLs:.06em;--hdTransform:none;
+}
+
+/* ⑪ 孟菲斯 —— 80 年代，糖果色，装饰图形 */
+html[data-theme="memphis"]{
+  --bg:#fdf6ec;--bg2:#f7eddc;--card:#ffffff;--card2:#faf3e6;
+  --line:#2b2b2b;--line2:#2b2b2b;
+  --fg:#1f1f1f;--dim:#645a52;--dim2:#9c9088;
+  --accent:#ff4f7b;--accent2:#00b8d4;--accentGlow:rgba(255,79,123,.3);
+  --ok:#28a745;--err:#e63946;
+  --glowA:rgba(255,79,123,.16);--glowB:rgba(255,209,102,.20);
+  --r:14px;--r-lg:22px;--r-pill:999px;--bd:2.5px;
+  --font:"Avenir Next",system-ui,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.46;--bounce:.28;
+  --shadow:4px 4px 0 var(--fg);
+  --tex:radial-gradient(circle at 12% 18%,rgba(255,79,123,.10) 0 6px,transparent 6px),
+        radial-gradient(circle at 82% 62%,rgba(0,184,212,.09) 0 8px,transparent 8px),
+        radial-gradient(circle at 45% 88%,rgba(255,209,102,.14) 0 7px,transparent 7px);
+  --texOp:1;
+  --brandInv:none;
+  --hdWeight:800;--hdLs:-.02em;--hdTransform:none;
+}
+
+/* ⑫ 靛蓝 —— 冷色调，夜间安静 */
+html[data-theme="indigo"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#0a0f1c;--bg2:#0f1626;--card:#141c2d;--card2:#1b2438;
+  --line:#243049;--line2:#31405e;
+  --fg:#eef2fa;--dim:#8292ad;--dim2:#55647d;
+  --accent:#2f5cf5;--accent2:#4d7bff;--accentGlow:rgba(47,92,245,.35);
+  --ok:#2ecf9a;--err:#ff5c72;
+  --glowA:rgba(47,92,245,.16);--glowB:rgba(47,92,245,.09);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.5;--bounce:.16;
+  --shadow:0 6px 20px -6px var(--accentGlow);
+  --tex:none;--texOp:0;
+  --brandInv:invert(1);
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
+}
+
+/* ⑬ 纸白 —— 极浅底色，日常白天用 */
+html[data-theme="paper"]{
+  --bg:#f6f5f2;--bg2:#ecebe6;--card:#ffffff;--card2:#f1f0eb;
+  --line:#dcdad3;--line2:#c4c2ba;
+  --fg:#1b1c1a;--dim:#6b6a64;--dim2:#97968f;
+  --accent:#b8232f;--accent2:#d12c39;--accentGlow:rgba(184,35,47,.22);
+  --ok:#1a8a54;--err:#c2362a;
+  --glowA:rgba(184,35,47,.07);--glowB:rgba(184,35,47,.04);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.5;--bounce:.16;
+  --shadow:0 4px 14px -8px rgba(27,28,26,.2);
+  --tex:none;--texOp:0;
+  --brandInv:none;
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
+}
+
+/* ⑭ 苔绿 —— 柔和不刺眼 */
+html[data-theme="moss"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#0b1210;--bg2:#101a16;--card:#15201b;--card2:#1c2a23;
+  --line:#243329;--line2:#314537;
+  --fg:#f0f6f1;--dim:#8a9c8f;--dim2:#5b6b60;
+  --accent:#1f9d5c;--accent2:#2ec278;--accentGlow:rgba(31,157,92,.35);
+  --ok:#2ec278;--err:#ff6b6b;
+  --glowA:rgba(31,157,92,.15);--glowB:rgba(31,157,92,.08);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.5;--bounce:.16;
+  --shadow:0 6px 20px -6px var(--accentGlow);
+  --tex:none;--texOp:0;
+  --brandInv:invert(1);
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
+}
+
+/* ⑮ 琥珀 —— 暖色复古 */
+html[data-theme="amber"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#12100c;--bg2:#1a1711;--card:#211d15;--card2:#2a251b;
+  --line:#3a3325;--line2:#4d442f;
+  --fg:#faf5ea;--dim:#a4967c;--dim2:#6e6350;
+  --accent:#d4861c;--accent2:#f0a233;--accentGlow:rgba(212,134,28,.35);
+  --ok:#4caf6d;--err:#e2603f;
+  --glowA:rgba(212,134,28,.15);--glowB:rgba(212,134,28,.08);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.5;--bounce:.16;
+  --shadow:0 6px 20px -6px var(--accentGlow);
+  --tex:none;--texOp:0;
+  --brandInv:invert(1);
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
+}
+
+/* ⑯ 石墨 —— 纯灰阶 */
+html[data-theme="graphite"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#0c0d0e;--bg2:#131516;--card:#1a1c1e;--card2:#232629;
+  --line:#2c2f32;--line2:#3b3f43;
+  --fg:#f0f1f2;--dim:#8e9297;--dim2:#5e6266;
+  --accent:#6a727a;--accent2:#8d959d;--accentGlow:rgba(110,120,130,.3);
+  --ok:#63b184;--err:#d97a6c;
+  --glowA:rgba(120,130,140,.10);--glowB:rgba(120,130,140,.06);
+  --r:0px;--r-lg:0px;--r-pill:0px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.5;--bounce:.16;
+  --shadow:0 6px 20px -8px rgba(0,0,0,.7);
+  --tex:none;--texOp:0;
+  --brandInv:invert(1);
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
+}
+
+/* ⑰ 日落 —— 橙紫渐变，活泼 */
+html[data-theme="sunset"]{
+  --hdGrad:linear-gradient(180deg,#fff 30%,#8a93a5 130%);--hdClip:text;--hdFill:transparent;
+  --bg:#160e1f;--bg2:#1e1329;--card:#261834;--card2:#301f42;
+  --line:#3d2a52;--line2:#523a6b;
+  --fg:#fff0f6;--dim:#b394c4;--dim2:#7e6391;
+  --accent:#ff7a45;--accent2:#ff9e6b;--accentGlow:rgba(255,122,69,.35);
+  --ok:#4ade80;--err:#ff5470;
+  --glowA:rgba(255,122,69,.18);--glowB:rgba(190,80,200,.16);
+  --r:8px;--r-lg:14px;--r-pill:999px;--bd:1.5px;
+  --font:system-ui,-apple-system,"PingFang SC",sans-serif;
+  --fontHd:var(--font);
+  --dur:.52;--bounce:.2;
+  --shadow:0 8px 26px -10px var(--accentGlow);
+  --tex:radial-gradient(circle at 85% 5%,rgba(190,80,200,.18),transparent 55%);
+  --texOp:1;
+  --brandInv:invert(1);
+  --hdWeight:900;--hdLs:-1px;--hdTransform:none;
+}
+/* 标题默认实色。渐变文字用 background-clip:text + 透明填充，
+   在个别 WebView 上会整段失效变透明，所以只给深色主题开。 */
+html{--hdGrad:none;--hdClip:border-box;--hdFill:currentColor}
+
+/* 兜底：未设置 data-theme 时按赤潮渲染 */
+html{color-scheme:dark}
+html[data-theme="paper"],html[data-theme="nordic"],html[data-theme="bauhaus"],
+html[data-theme="constructivism"],html[data-theme="dada"],html[data-theme="ink"],
+html[data-theme="memphis"]{color-scheme:light}
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0}
-body{font:15px/1.7 -apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+html,body{margin:0;min-height:100%}
+body{font:15px/1.7 var(--font);
      background:var(--bg);color:var(--fg);
-     display:flex;flex-direction:column;overflow:hidden;
-     -webkit-font-smoothing:antialiased}
+     -webkit-font-smoothing:antialiased;
+     transition:background-color .25s, color .25s}
 
 /* 背景氛围：两团暗红光晕，模拟官网的舞台打光 */
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(60% 40% at 15% 0%, rgba(196,29,59,.16), transparent 70%),
-    radial-gradient(50% 35% at 100% 100%, rgba(196,29,59,.10), transparent 70%);
+    var(--tex) 0 0 / auto,
+    radial-gradient(60% 40% at 15% 0%, var(--glowA), transparent 70%),
+    radial-gradient(50% 35% at 100% 100%, var(--glowB), transparent 70%);
+  opacity:1;
 }
 body>*{position:relative;z-index:1}
 
 /* ── 核心排版 ── */
-h2{font-size:26px;font-weight:900;letter-spacing:-.8px;line-height:1.2;margin:0 0 6px;
-   background:linear-gradient(180deg,#fff 30%,#a8b0bf);
-   -webkit-background-clip:text;background-clip:text;color:transparent}
-h1{font-size:31px;font-weight:900;letter-spacing:-1px;line-height:1.2;margin:0;
-   background:linear-gradient(180deg,#fff 25%,#8d95a5);
-   -webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:26px;font-family:var(--fontHd);font-weight:var(--hdWeight);
+   letter-spacing:var(--hdLs);text-transform:var(--hdTransform);line-height:1.2;margin:0 0 6px;
+   color:var(--fg);
+   background:var(--hdGrad);
+   -webkit-background-clip:var(--hdClip);background-clip:var(--hdClip);
+   -webkit-text-fill-color:var(--hdFill)}
+h1{font-size:31px;font-family:var(--fontHd);font-weight:var(--hdWeight);
+   letter-spacing:var(--hdLs);text-transform:var(--hdTransform);line-height:1.2;margin:0;
+   color:var(--fg);
+   background:var(--hdGrad);
+   -webkit-background-clip:var(--hdClip);background-clip:var(--hdClip);
+   -webkit-text-fill-color:var(--hdFill)}
 .sub{color:var(--dim);font-size:13px;margin-bottom:22px;letter-spacing:.2px}
 label{display:block;font-size:11px;color:var(--dim);margin:20px 0 8px;
       font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 
 /* ── 表单 ── */
-input,textarea,select{width:100%;padding:14px 15px;border-radius:9px;
-     border:1.5px solid var(--line);background:var(--card);color:var(--fg);
+input,textarea,select{width:100%;padding:14px 15px;border-radius:var(--r);
+     border:var(--bd) solid var(--line);background:var(--card);color:var(--fg);
      font-family:inherit;font-size:16px;outline:none;
      transition:border-color .2s var(--ease), background .2s var(--ease)}
 input::placeholder,textarea::placeholder{color:var(--dim2)}
@@ -69,15 +445,14 @@ input:focus,textarea:focus{border-color:var(--accent2);background:var(--card2);
 textarea{resize:vertical;min-height:88px;line-height:1.75}
 
 /* ── 按钮 ── */
-button{padding:15px 22px;border-radius:9px;border:none;
+button{padding:15px 22px;border-radius:var(--r);border:none;
        background:linear-gradient(135deg,var(--accent2),var(--accent));
        color:#fff;font:inherit;font-weight:800;letter-spacing:.04em;cursor:pointer;
        width:100%;margin-top:14px;
        box-shadow:0 6px 20px -6px var(--accentGlow);
-       transition:transform .16s var(--ease), box-shadow .16s var(--ease), opacity .16s}
-button:active{transform:scale(.975);box-shadow:0 3px 12px -6px var(--accentGlow)}
+       transition:box-shadow .16s, opacity .16s;will-change:transform}
 button:disabled{opacity:.42;box-shadow:none}
-button.ghost{background:transparent;border:1.5px solid var(--line2);color:var(--fg);
+button.ghost{background:transparent;border:var(--bd) solid var(--line2);color:var(--fg);
              box-shadow:none;font-weight:600}
 button.ghost:active{background:var(--card)}
 
@@ -87,22 +462,84 @@ button.ghost:active{background:var(--card)}
 /* 关闭按钮：必须显式覆盖全局 button{width:100%}，
    否则会被撑成整行宽的红色主按钮 */
 .closeX{width:36px;height:36px;min-width:36px;flex-shrink:0;padding:0;margin:0;
-        border-radius:9px;border:1.5px solid var(--line2);background:transparent;
+        border-radius:var(--r);border:var(--bd) solid var(--line2);background:transparent;
         color:var(--dim);font-size:15px;font-weight:400;line-height:1;
         display:flex;align-items:center;justify-content:center;
         box-shadow:none;cursor:pointer;transition:all .2s var(--ease)}
 .closeX:active{background:var(--card);border-color:var(--accent2);color:var(--accent2)}
 
+/* ── 列表页顶栏：标题在左，设置按钮在右 ── */
+.listTop{display:flex;align-items:flex-start;gap:12px;margin-bottom:26px}
+.iconBtn{width:42px;height:42px;min-width:42px;padding:0;margin:3px 0 0;
+         border:var(--bd) solid var(--line2);background:var(--card);color:var(--dim);
+         display:flex;align-items:center;justify-content:center;cursor:pointer;
+         box-shadow:none;transition:color .2s, border-color .2s, background .2s}
+.iconBtn:active{color:var(--accent2);border-color:var(--accent2);background:var(--card2)}
+
+/* ── 底部导航栏 ──
+   微信式布局：两个等宽标签，选中项用一条滑动指示条标记。
+   指示条位置由弹簧驱动（见 setTab），不是 CSS transition，
+   所以快速连点两个标签时会顺滑地折返，而不是重播。 */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:800;
+        height:calc(58px + env(safe-area-inset-bottom));
+        padding-bottom:env(safe-area-inset-bottom);
+        display:flex;background:color-mix(in srgb, var(--bg) 96%, transparent);
+        backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+        border-top:1px solid var(--line)}
+.tabbar.hide{display:none}
+.tab{flex:1;padding:0;margin:0;background:transparent;border:none;box-shadow:none;
+     color:var(--dim2);font:inherit;font-size:11px;font-weight:700;
+     display:flex;flex-direction:column;align-items:center;justify-content:center;
+     gap:4px;cursor:pointer;transition:color .18s;letter-spacing:.06em;
+     position:relative;z-index:1;width:auto;border-radius:0}
+.tab:active{transform:none;box-shadow:none}
+.tab.on{color:var(--accent2)}
+.tab svg{width:22px;height:22px;display:block}
+/* 滑动指示条：位置/宽度用 JS 弹簧驱动 */
+.tabIndicator{position:absolute;top:0;height:2px;background:var(--accent2);
+              box-shadow:0 0 8px var(--accentGlow);left:0;width:0;
+              will-change:transform,width}
+
+/* 有底栏时，页面要给它让出高度 */
+body{padding-bottom:0}
+.screen.hasTabbar{padding-bottom:calc(58px + env(safe-area-inset-bottom) + 16px)}
+#chatScreen.hasTabbar{padding-bottom:0}
+#chatScreen.hasTabbar #bar{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+#chatScreen.hasTabbar{height:100%}
+#chatScreen.hasTabbar #log{padding-bottom:8px}
+
+/* ── 主题选择器 ── */
+.themeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;
+            position:relative}
+.tcard{position:relative;padding:11px 10px 10px;border:var(--bd) solid var(--line);
+       background:var(--card);cursor:pointer;text-align:center;will-change:transform}
+/* 选中框：脱离文档流的独立层，位置/尺寸由弹簧驱动 */
+.tframe{position:absolute;top:0;left:0;pointer-events:none;
+        border:1.5px solid var(--accent2);box-shadow:0 0 0 2px var(--accentGlow);
+        will-change:transform,width,height;z-index:1}
+.tcard{position:relative;z-index:2}
+/* 色板：三个小方块，直接展示该主题的底色/主色/文字色 */
+.tprev{height:52px;display:flex;align-items:flex-end;gap:4px;
+        margin-bottom:7px;padding:6px;position:relative;overflow:hidden;
+        border:1px solid var(--line)}
+.tprevBar{flex:1;height:5px;display:block}
+.tprevTxt{font-size:17px;font-weight:800;line-height:1;margin-left:auto;letter-spacing:-.02em}
+.tname{font-size:11.5px;font-weight:800;color:var(--fg);letter-spacing:.02em}
+.tcard.on .tname{color:var(--accent2)}
+/* 选中打勾 */
+.tcard.on::after{content:"✓";position:absolute;top:5px;right:7px;
+       font-size:11px;font-weight:900;color:var(--accent2);z-index:3}
+
 /* ── 文件选择框（浏览器默认是白底的，要和暗色主题一致）── */
 input[type=file]{width:100%;padding:0;border:none;background:transparent;
      color:var(--dim);font-size:12.5px;cursor:pointer}
 input[type=file]::file-selector-button{padding:8px 14px;margin-right:10px;
-     border-radius:7px;border:1.5px solid var(--line2);background:var(--card);
+     border-radius:var(--r);border:var(--bd) solid var(--line2);background:var(--card);
      color:var(--fg);font:inherit;font-size:12.5px;font-weight:700;
      cursor:pointer;transition:all .2s var(--ease)}
 input[type=file]::file-selector-button:hover{border-color:var(--accent2);color:var(--accent2)}
 input[type=file]::-webkit-file-upload-button{padding:8px 14px;margin-right:10px;
-     border-radius:7px;border:1.5px solid var(--line2);background:var(--card);
+     border-radius:var(--r);border:var(--bd) solid var(--line2);background:var(--card);
      color:var(--fg);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
 
 /* 复选框：默认是浏览器白底，暗色主题下刺眼 */
@@ -111,7 +548,7 @@ input[type=time]{color-scheme:dark}
 
 /* ── 步骤指示器 ── */
 .steps{display:flex;gap:7px;margin-bottom:16px}
-.stp{width:26px;height:4px;border-radius:2px;background:var(--line2);
+.stp{width:26px;height:4px;border-radius:var(--r);background:var(--line2);
      transition:background .3s var(--ease), box-shadow .3s var(--ease);
      font-size:0;overflow:hidden}
 .stp.on{background:linear-gradient(90deg,var(--accent2),var(--accent));
@@ -119,7 +556,7 @@ input[type=time]{color-scheme:dark}
 .stp.done{background:var(--line2)}
 
 /* ── 消息提示 ── */
-.msg{margin-top:14px;padding:13px 15px;border-radius:9px;font-size:13px;
+.msg{margin-top:14px;padding:13px 15px;border-radius:var(--r);font-size:13px;
      display:none;word-break:break-word;border-left:3px solid}
 .msg.ok{display:block;background:rgba(46,204,143,.09);color:var(--ok);border-color:var(--ok)}
 .msg.err{display:block;background:rgba(255,84,104,.09);color:var(--err);border-color:var(--err)}
@@ -127,7 +564,7 @@ input[type=time]{color-scheme:dark}
 /* ── 屏幕容器 ── */
 .screen{display:none;flex:1;overflow-y:auto;padding:24px 18px;
         padding-top:calc(24px + env(safe-area-inset-top))}
-.screen.on{display:block;animation:riseIn .42s var(--ease) both}
+.screen.on{display:block}
 #chatScreen{display:none;flex-direction:column;padding:0;overflow:hidden}
 #chatScreen.on{display:flex}
 
@@ -138,7 +575,7 @@ input[type=time]{color-scheme:dark}
 
 /* ── 聊天页头部 ── */
 header{flex-shrink:0;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
-       background:rgba(13,15,20,.92);backdrop-filter:blur(20px);
+       background:color-mix(in srgb, var(--bg) 92%, transparent);backdrop-filter:blur(20px);
        -webkit-backdrop-filter:blur(20px);
        border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;
        position:relative}
@@ -146,7 +583,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px
   background:linear-gradient(90deg,transparent,rgba(196,29,59,.5),transparent)}
 header img,header .ph{width:40px;height:40px;border-radius:50%;object-fit:cover;
        background:var(--card2);display:flex;align-items:center;justify-content:center;
-       color:var(--dim2);border:1.5px solid var(--line2)}
+       color:var(--dim2);border:var(--bd) solid var(--line2)}
 header .nm{font-weight:800;font-size:16px;letter-spacing:-.2px}
 header .st{font-size:11px;color:var(--dim);margin-top:1px}
 header .bk{font-size:19px;color:var(--dim);padding:8px 6px;cursor:pointer;
@@ -155,29 +592,29 @@ header .bk:active{color:var(--accent2)}
 
 /* ── 消息气泡 ── */
 #log{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px}
-.m{max-width:84%;padding:12px 16px;border-radius:16px;white-space:pre-wrap;
+.m{max-width:84%;padding:12px 16px;border-radius:var(--r-lg);white-space:pre-wrap;
    word-break:break-word;font-size:15px;line-height:1.65;
    animation:msgIn .34s var(--ease) both}
 @keyframes msgIn{from{opacity:0;translate:0 10px;scale:.97}to{opacity:1;translate:0 0;scale:1}}
 .me{align-self:flex-end;background:linear-gradient(135deg,var(--accent2),var(--accent));
     color:#fff;border-bottom-right-radius:5px}
-.ta{align-self:flex-start;background:var(--card2);border:1px solid var(--line);
+.ta{align-self:flex-start;background:var(--card2);border:var(--bd) solid var(--line);
     border-bottom-left-radius:5px}
 .sys{align-self:center;color:var(--dim2);font-size:12px;padding:6px 14px}
 
 /* ── 输入栏 ── */
 #bar{flex-shrink:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));
-     background:rgba(13,15,20,.94);backdrop-filter:blur(20px);
+     background:color-mix(in srgb, var(--bg) 94%, transparent);backdrop-filter:blur(20px);
      -webkit-backdrop-filter:blur(20px);
      border-top:1px solid var(--line);display:flex;gap:9px;align-items:flex-end}
 /* 单行时按钮和输入框居中对齐；多行（输入框长高）时仍底部对齐，
    这样按钮贴着最下面一行，符合常见聊天 App 的手感 */
-#msg{flex:1;padding:12px 16px;border-radius:20px;border:1.5px solid var(--line);
+#msg{flex:1;padding:12px 16px;border-radius:var(--r);border:var(--bd) solid var(--line);
      background:var(--card);color:var(--fg);font-family:inherit;font-size:16px;
      resize:none;outline:none;max-height:110px;line-height:1.5;
      transition:border-color .2s var(--ease)}
 #msg:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(196,29,59,.1)}
-#send{padding:0 20px;height:44px;border-radius:22px;border:none;
+#send{padding:0 20px;height:44px;border-radius:var(--r-pill);border:none;
       background:linear-gradient(135deg,var(--accent2),var(--accent));
       color:#fff;font:inherit;font-weight:800;width:auto;margin:0;flex-shrink:0;
       box-shadow:0 4px 14px -4px var(--accentGlow)}
@@ -185,16 +622,15 @@ header .bk:active{color:var(--accent2)}
 /* ── 列表 / 卡片 ── */
 .row{display:flex;gap:11px}
 .row button{flex:1}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+.card{background:var(--card);border:var(--bd) solid var(--line);border-radius:var(--r);
       padding:18px;margin-bottom:14px}
 .p{display:flex;gap:14px;align-items:center;padding:16px;background:var(--card);
-   border:1px solid var(--line);border-radius:13px;margin-bottom:11px;cursor:pointer;
-   transition:transform .2s var(--ease), border-color .2s, background .2s;
-   animation:riseIn .4s var(--ease) both}
+   border:var(--bd) solid var(--line);border-radius:var(--r);margin-bottom:11px;cursor:pointer;
+   border-color:var(--line);will-change:transform}
 .p:active{transform:scale(.985);border-color:var(--accent);background:var(--card2)}
 .p img,.p .ph{width:52px;height:52px;border-radius:50%;object-fit:cover;
    background:var(--card2);display:flex;align-items:center;justify-content:center;
-   color:var(--dim2);font-size:20px;flex-shrink:0;border:1.5px solid var(--line2)}
+   color:var(--dim2);font-size:20px;flex-shrink:0;border:var(--bd) solid var(--line2)}
 .p .nm{font-weight:800;font-size:16px;letter-spacing:-.2px}
 .p .meta{font-size:12px;color:var(--dim);margin-top:2px;
    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
@@ -224,12 +660,12 @@ header .bk:active{color:var(--accent2)}
 /* 品牌字图是纯黑色的（原设计给浅色背景用），
    暗色主题下用 invert 反成白色，外面再加一层淡红辉光贴合主色调 */
 #zh{width:min(250px,60vw);height:auto;
-    filter:invert(1) drop-shadow(0 0 18px rgba(196,29,59,.45))}
+    filter:var(--brandInv) drop-shadow(0 0 18px var(--accentGlow))}
 #en{width:min(360px,82vw);height:auto;
-    filter:invert(1) drop-shadow(0 0 14px rgba(196,29,59,.35))}
+    filter:var(--brandInv) drop-shadow(0 0 14px var(--accentGlow))}
 #bzMark{width:190px;height:190px;opacity:0;transform:scale(.86);
         transition:all .85s var(--ease);
-        filter:invert(1) drop-shadow(0 0 12px rgba(196,29,59,.3))}
+        filter:var(--brandInv) drop-shadow(0 0 12px var(--accentGlow))}
 #bzMark.in{opacity:1;transform:scale(1)}
 #bzWord{margin-top:24px;font-size:17px;letter-spacing:.22em;color:var(--dim);
         font-weight:700;opacity:0;transition:opacity .8s ease;text-transform:uppercase}
@@ -244,7 +680,7 @@ header .bk:active{color:var(--accent2)}
          align-items:center;justify-content:center;padding:14px}
 #consent.on{display:flex}
 #consent .box{width:100%;max-height:calc(100vh - 28px);background:var(--card);
-              border:1px solid var(--line2);border-radius:14px;display:flex;
+              border:1px solid var(--line2);border-radius:var(--r-lg);display:flex;
               flex-direction:column;overflow:hidden;
               box-shadow:0 24px 60px -20px rgba(0,0,0,.8)}
 #consent .hd{padding:20px 18px 14px;border-bottom:1px solid var(--line);
@@ -254,22 +690,22 @@ header .bk:active{color:var(--accent2)}
 #consent .hd h2{margin:0 0 4px;font-size:21px}
 #consent .hd p{margin:0;font-size:11px;color:var(--dim)}
 #consent .bd{flex:1;overflow-y:auto;padding:16px 18px;font-size:13px;
-             line-height:1.9;color:#b8c0cd}
+             line-height:1.9;color:var(--dim)}
 #consent .bd h3{font-size:13.5px;margin:18px 0 7px;color:var(--fg);font-weight:800}
 #consent .bd p{margin:0 0 9px}
-#consent .bd strong{color:#fff}
+#consent .bd strong{color:var(--fg)}
 #consent .chk{display:flex;gap:10px;align-items:flex-start;padding:14px 18px 0;
               font-size:13px;color:#b8c0cd}
 #consent .chk input{margin-top:3px;flex-shrink:0;width:19px;height:19px;accent-color:var(--accent2)}
-#consent .warn{margin:10px 18px 0;padding:10px 12px;border-radius:8px;font-size:12px;
+#consent .warn{margin:10px 18px 0;padding:10px 12px;border-radius:var(--r);font-size:12px;
                background:rgba(255,84,104,.1);color:var(--err);display:none;
                border-left:2px solid var(--err)}
 #consent .warn.on{display:block}
 #consent .ft{padding:14px 18px calc(14px + env(safe-area-inset-bottom));
              border-top:1px solid var(--line);display:flex;gap:10px}
-#consent button{flex:1;padding:14px;border-radius:9px;border:none;font:inherit;
+#consent button{flex:1;padding:14px;border-radius:var(--r);border:none;font:inherit;
                 font-weight:800;cursor:pointer;margin:0;width:auto}
-#btnDecline{background:transparent;border:1.5px solid var(--line2);color:var(--fg)}
+#btnDecline{background:transparent;border:var(--bd) solid var(--line2);color:var(--fg)}
 
 /* ══════ 退出态 ══════ */
 #bye{position:fixed;inset:0;background:var(--bg);z-index:1030;display:none;
@@ -279,7 +715,7 @@ header .bk:active{color:var(--accent2)}
 #bye h2{margin:0;font-size:26px;font-weight:900;letter-spacing:-.5px;color:var(--fg);
         background:none;-webkit-text-fill-color:initial}
 #bye p{margin:0;font-size:14px;color:var(--dim);max-width:360px;line-height:1.85}
-#bye .again{margin-top:8px;padding:13px 30px;border-radius:9px;border:1.5px solid var(--line2);
+#bye .again{margin-top:8px;padding:13px 30px;border-radius:var(--r);border:var(--bd) solid var(--line2);
             background:transparent;color:var(--fg);font:inherit;font-weight:700;
             cursor:pointer;width:auto}
 
@@ -300,7 +736,7 @@ header .bk:active{color:var(--accent2)}
 .sheetHd::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
          background:linear-gradient(90deg,var(--accent),transparent 70%)}
 .sheetHd h3{margin:0;font-size:24px;font-weight:900;letter-spacing:-.6px;color:var(--fg)}
-.xbtn{width:36px;height:36px;border-radius:9px;border:1.5px solid var(--line2);
+.xbtn{width:36px;height:36px;border-radius:var(--r);border:var(--bd) solid var(--line2);
       background:transparent;color:var(--dim);font-size:15px;cursor:pointer;
       display:flex;align-items:center;justify-content:center;
       transition:all .2s var(--ease);flex-shrink:0;padding:0;margin:0;
@@ -317,8 +753,8 @@ header .bk:active{color:var(--accent2)}
            background:linear-gradient(90deg,var(--line2),transparent)}
 .sblock label{display:block;font-size:11px;color:var(--dim);margin:14px 0 6px;
               font-weight:700;letter-spacing:.1em}
-.sblock input,.sblock textarea{width:100%;padding:13px 14px;border-radius:9px;
-       border:1.5px solid var(--line);background:var(--card);color:var(--fg);
+.sblock input,.sblock textarea{width:100%;padding:13px 14px;border-radius:var(--r);
+       border:var(--bd) solid var(--line);background:var(--card);color:var(--fg);
        font-family:inherit;font-size:16px;outline:none;
        transition:border-color .2s var(--ease)}
 .sblock input:focus,.sblock textarea:focus{border-color:var(--accent2);
@@ -329,8 +765,8 @@ header .bk:active{color:var(--accent2)}
 .avrow img{width:76px;height:76px;border-radius:50%;object-fit:cover;
            background:var(--card2);border:2px solid var(--line2);flex-shrink:0}
 
-.sbtn{display:block;width:100%;padding:15px 16px;border-radius:9px;
-      border:1.5px solid var(--line);background:var(--card);color:var(--fg);
+.sbtn{display:block;width:100%;padding:15px 16px;border-radius:var(--r);
+      border:var(--bd) solid var(--line);background:var(--card);color:var(--fg);
       font:inherit;font-weight:700;cursor:pointer;text-align:center;
       margin-bottom:10px;margin-top:0;
       transition:all .18s var(--ease);box-shadow:none}
@@ -344,7 +780,7 @@ header .bk:active{color:var(--accent2)}
 .hint{font-size:11.5px;color:var(--dim2);margin-top:8px;line-height:1.7}
 
 /* 抽屉里的列表 */
-#plistSheet .box{background:var(--bg);border-radius:20px 20px 0 0;max-height:82vh;
+#plistSheet .box{background:var(--bg);border-radius:var(--r-lg) var(--r-lg) 0 0;max-height:82vh;
                  display:flex;flex-direction:column;
                  padding-bottom:env(safe-area-inset-bottom);
                  border-top:1px solid var(--line2);
@@ -356,35 +792,35 @@ header .bk:active{color:var(--accent2)}
 #plistSheet .list{flex:1;overflow-y:auto;padding:10px}
 #plistSheet .ft{padding:14px;border-top:1px solid var(--line)}
 
-.pitem{display:flex;gap:13px;align-items:center;padding:13px;border-radius:11px;
+.pitem{display:flex;gap:13px;align-items:center;padding:13px;border-radius:var(--r);
        cursor:pointer;transition:background .18s var(--ease)}
 .pitem.cur{background:rgba(196,29,59,.12);border:1px solid rgba(196,29,59,.35)}
 .pitem:active{background:var(--card)}
 .pitem img,.pitem .ph{width:46px;height:46px;border-radius:50%;object-fit:cover;
        background:var(--card2);display:flex;align-items:center;justify-content:center;
-       color:var(--dim2);font-size:18px;flex-shrink:0;border:1.5px solid var(--line2)}
+       color:var(--dim2);font-size:18px;flex-shrink:0;border:var(--bd) solid var(--line2)}
 .pitem .pnm{font-weight:800;font-size:15px}
 .pitem .pmeta{font-size:11.5px;color:var(--dim)}
 
-.chip{padding:8px 16px;border-radius:20px;border:1.5px solid var(--line2);
+.chip{padding:8px 16px;border-radius:var(--r);border:var(--bd) solid var(--line2);
       background:transparent;color:var(--dim);font-size:13px;cursor:pointer;
       user-select:none;transition:all .18s var(--ease);font-weight:600}
 .chip:active{background:rgba(196,29,59,.14);border-color:var(--accent2);color:var(--accent2)}
 
-.gitem{display:flex;align-items:center;gap:12px;padding:14px;border-radius:11px;
-       border:1.5px solid var(--line);margin-bottom:9px;background:var(--card)}
+.gitem{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);
+       border:var(--bd) solid var(--line);margin-bottom:9px;background:var(--card)}
 .gitem .gt{font-weight:800;font-size:16px;flex-shrink:0;
            font-variant-numeric:tabular-nums;color:var(--accent2)}
 .gitem .gc{flex:1;font-size:12.5px;color:var(--dim);overflow:hidden;
            text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;
            -webkit-box-orient:vertical;line-height:1.6}
-.gitem .gdel{padding:7px 12px;border-radius:8px;
+.gitem .gdel{padding:7px 12px;border-radius:var(--r);
              border:1.5px solid rgba(255,84,104,.3);background:transparent;
              color:var(--err);font-size:12px;cursor:pointer;flex-shrink:0;
              width:auto;margin:0;font-weight:700;box-shadow:none}
 
 /* 问候弹框 */
-#greetDialog .box{background:var(--bg);border-radius:20px 20px 0 0;width:100%;
+#greetDialog .box{background:var(--bg);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;
                   max-height:88vh;display:flex;flex-direction:column;
                   padding-bottom:env(safe-area-inset-bottom);
                   border-top:1px solid var(--line2);
@@ -396,11 +832,11 @@ header .bk:active{color:var(--accent2)}
 #greetDialog label{display:block;font-size:11px;color:var(--dim);margin:0 0 6px;
                    font-weight:700;letter-spacing:.1em}
 #greetDialog .ft{padding:0 18px 20px;flex-shrink:0}
-#greetDialog input[type=time]{width:100%;padding:14px;border-radius:9px;
-      border:1.5px solid var(--line);background:var(--card);color:var(--fg);font:inherit;
+#greetDialog input[type=time]{width:100%;padding:14px;border-radius:var(--r);
+      border:var(--bd) solid var(--line);background:var(--card);color:var(--fg);font:inherit;
       color-scheme:dark}
-#greetDialog textarea{width:100%;padding:13px;border-radius:9px;
-      border:1.5px solid var(--line);background:var(--card);color:var(--fg);
+#greetDialog textarea{width:100%;padding:13px;border-radius:var(--r);
+      border:var(--bd) solid var(--line);background:var(--card);color:var(--fg);
       font:inherit;resize:vertical;line-height:1.75}
 #greetDialog .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 
@@ -408,19 +844,19 @@ header .bk:active{color:var(--accent2)}
 #plistSheet.on{display:flex}
 
 /* 通用弹窗 mbox */
-.mbox{background:var(--bg);border-radius:18px 18px 0 0;width:100%;max-width:520px;
+.mbox{background:var(--bg);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:520px;
       max-height:92vh;display:flex;flex-direction:column;
       border-top:1px solid var(--line2);
       animation:sheetUp .34s var(--ease) both}
 .mhd{padding:20px 18px 16px;border-bottom:1px solid var(--line);
      display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .mhd h3{margin:0;font-size:19px;font-weight:900;letter-spacing:-.4px}
-.mbd{padding:18px;overflow-y:auto;flex:1;font-size:13.5px;line-height:1.85;color:#b8c0cd}
+.mbd{padding:18px;overflow-y:auto;flex:1;font-size:13.5px;line-height:1.85;color:var(--dim)}
 .mbd h4{margin:20px 0 8px;font-size:11px;color:var(--accent2);font-weight:800;
         letter-spacing:.18em;text-transform:uppercase}
 .mbd p{margin:0 0 10px}
-.mbd strong{color:#fff}
-.mbd code{background:var(--card2);padding:2px 7px;border-radius:5px;
+.mbd strong{color:var(--fg)}
+.mbd code{background:var(--card2);padding:2px 7px;border-radius:var(--r);
           font-size:12.5px;color:var(--accent2)}
 .mft{padding:14px 18px calc(16px + env(safe-area-inset-bottom));
      border-top:1px solid var(--line);display:flex;gap:10px;flex-shrink:0}
@@ -428,11 +864,32 @@ header .bk:active{color:var(--accent2)}
 
 /* 滚动条 */
 ::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:var(--r)}
 ::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
+
+
+<!-- ══════ 底部导航（微信式：左对话 / 右设置）══════ -->
+<nav id="tabbar" class="tabbar" aria-label="主导航">
+  <div class="tabIndicator" id="tabIndicator"></div>
+  <button class="tab" data-tab="chat" aria-label="对话">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.9" stroke-linecap="square" stroke-linejoin="miter">
+      <path d="M3 5h18v12H8l-5 4V5z"/>
+    </svg>
+    <span>对话</span>
+  </button>
+  <button class="tab" data-tab="settings" aria-label="设置">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.9" stroke-linecap="square">
+      <circle cx="12" cy="12" r="3.2"/>
+      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M18.9 5.1l-2.1 2.1M7.2 16.8l-2.1 2.1"/>
+    </svg>
+    <span>设置</span>
+  </button>
+</nav>
 
 <!-- ══════ 启动动画 ══════ -->
 <div id="splash">
@@ -553,9 +1010,11 @@ header .bk:active{color:var(--accent2)}
 
 <!-- 列表 -->
 <div class="screen" id="sList">
-  <div style="margin-bottom:26px">
-    <h1>我的伴侣</h1>
-    <div class="sub" style="margin-bottom:0;margin-top:8px">点一个开始聊天</div>
+  <div class="listTop">
+    <div style="min-width:0;flex:1">
+      <h1>我的伴侣</h1>
+      <div class="sub" style="margin-bottom:0;margin-top:8px">点一个开始聊天</div>
+    </div>
   </div>
   <div id="plist"></div>
   <button id="btn-new">＋ 新建一个伴侣</button>
@@ -584,7 +1043,7 @@ header .bk:active{color:var(--accent2)}
     <button class="xbtn" id="btnCloseSet">✕</button>
   </div>
   <div class="sheetBd">
-    <div class="sblock">
+    <div class="sblock charOnly">
       <h4>人设</h4>
       <div class="avrow">
         <img id="setAv" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%231e2430'/%3E%3Ctext x='36' y='46' font-size='26' text-anchor='middle' fill='%235f6775'%3E%3F%3C/text%3E%3C/svg%3E">
@@ -602,23 +1061,29 @@ header .bk:active{color:var(--accent2)}
       <button class="sbtn primary" id="btnSavePersona">保存修改</button>
     </div>
 
-    <div class="sblock">
+    <div class="sblock charOnly">
       <h4>定时问候</h4>
       <div id="schedList"></div>
       <button class="sbtn" id="btnAddGreet" style="margin-top:8px">＋ 添加一个问候</button>
       <div class="hint">到点会自动发消息给你。需要允许通知和后台运行权限。</div>
     </div>
 
-    <div class="sblock">
+    <div class="sblock charOnly">
       <h4>对话记录</h4>
       <button class="sbtn" id="btnExport">导出对话（复制到剪贴板）</button>
       <button class="sbtn danger" id="btnClear">清除聊天记录</button>
     </div>
 
-    <div class="sblock">
+    <div class="sblock charOnly">
       <h4>删除</h4>
       <button class="sbtn danger" id="btnDelete">删除这个人物</button>
       <div class="hint">连同人设、头像、全部对话一起删除，不可恢复。</div>
+    </div>
+
+    <div class="sblock">
+      <h4>外观</h4>
+      <div id="themeGrid" class="themeGrid"></div>
+      <div class="hint">每个主题带一整套配色、字体与纹理，不影响任何数据。</div>
     </div>
 
     <div class="sblock">
@@ -673,7 +1138,7 @@ header .bk:active{color:var(--accent2)}
       <h4>版本</h4>
       <p><code id="verText">v0.1.1</code>
          <span id="updateBadge" style="display:none;margin-left:8px;padding:2px 8px;
-               border-radius:9px;background:rgba(196,29,59,.18);color:#ff8095;font-size:11.5px;
+               border-radius:var(--r);background:rgba(196,29,59,.18);color:#ff8095;font-size:11.5px;
                font-weight:600">有新版本</span></p>
       <div id="updateArea" style="margin-top:8px"></div>
       <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer">
@@ -717,9 +1182,9 @@ header .bk:active{color:var(--accent2)}
   <div class="mbox">
     <div class="mhd"><h3>确认注销？</h3></div>
     <div class="mbd">
-      <p style="background:rgba(255,84,104,.1);color:var(--err);padding:11px 13px;border-radius:9px;margin:0;
+      <p style="background:rgba(255,84,104,.1);color:var(--err);padding:11px 13px;border-radius:var(--r);margin:0;
                 font-size:13px">注销将<strong>永久删除本机的全部内容</strong>，包括：</p>
-      <ul style="margin:12px 0 0;padding-left:20px;color:#b8c0cd;font-size:13.5px;line-height:2">
+      <ul style="margin:12px 0 0;padding-left:20px;color:var(--dim);font-size:13.5px;line-height:2">
         <li>API 配置与密钥</li>
         <li>所有伴侣的人设</li>
         <li>所有上传的头像</li>
@@ -741,12 +1206,12 @@ header .bk:active{color:var(--accent2)}
   <div class="mbox">
     <div class="mhd"><h3>最后确认</h3></div>
     <div class="mbd">
-      <p style="font-size:13.5px;color:#b8c0cd;line-height:1.8">请输入下面这句话以确认注销：</p>
-      <p style="margin:10px 0;padding:11px 13px;background:var(--card2);border-radius:9px;
+      <p style="font-size:13.5px;color:var(--dim);line-height:1.8">请输入下面这句话以确认注销：</p>
+      <p style="margin:10px 0;padding:11px 13px;background:var(--card2);border-radius:var(--r);
                 font-size:13px;color:var(--fg);user-select:all">
         我已确认我要注销我的OpenCompanion账号</p>
       <input id="logoutInput" placeholder="在此输入上面这句话"
-             style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);
+             style="width:100%;padding:12px;border-radius:var(--r);border:var(--bd) solid var(--line);
                     background:var(--card2);color:var(--fg);font:inherit;outline:none">
       <div class="hint" id="logoutHint" style="color:#d93025;display:none">文字不一致，请重新输入</div>
     </div>
@@ -801,6 +1266,163 @@ header .bk:active{color:var(--accent2)}
 <div class="sheet maskSheet" id="plistSheet"></div>
 
 <script>
+/* ═══════════════════════════════════════════════════════
+   弹簧动画引擎
+   ═══════════════════════════════════════════════════════
+
+   为什么不用 CSS transition / cubic-bezier：
+
+     CSS 缓动是「固定时长 + 预设曲线」，一旦开始就只能跑到终点。
+     用户中途改变目标（连续点击、拖动、被重新定向）时只能等它跑完
+     或从头重播，视觉上会顿一下；而且曲线是时间的函数，没法把当前
+     速度带进下一段，接不自然。
+
+     弹簧是力驱动的状态机，只关心 position / velocity / target。
+     改目标时保留速度继续跑，所以能任意中断、反向、接续而保持连续。
+
+   运动方程（阻尼弹簧）：
+
+       x'' + 2ζωx' + ω²(x - target) = 0
+
+   逐帧积分（半隐式欧拉：先算 a，再更新 v，最后用新 v 更新 x）：
+
+       a  = -2ζωv - ω²(x - target)
+       v += a·dt
+       x += v·dt
+
+   dt 过大时拆子步：切后台回来、掉帧、断点都可能让单帧跨几百毫秒，
+   一步算过去会冲过目标几十次。子步上限 1/120 秒。
+   ═══════════════════════════════════════════════════════ */
+const Spring = (function () {
+  const MAX_SUBSTEP = 1 / 120;
+  const MAX_FRAME  = 0.064;
+
+  const active = new Set();
+  let rafId = 0;
+
+  function loop(now) {
+    rafId = 0;
+    let alive = false;
+    for (const sp of [...active]) {
+      if (sp._step(now)) alive = true;
+    }
+    if (alive) rafId = requestAnimationFrame(loop);
+  }
+  function ensureLoop() { if (!rafId) rafId = requestAnimationFrame(loop); }
+
+  class SpringValue {
+    constructor(initial, opt) {
+      opt = opt || {};
+      this.position = initial;
+      this.target   = initial;
+      this.velocity = 0;
+      this.duration = opt.duration != null ? opt.duration : 0.5;
+      this.bounce   = opt.bounce   != null ? opt.bounce   : 0.16;
+      this.restDelta = opt.restDelta != null ? opt.restDelta : 0.001;
+      this.restSpeed = opt.restSpeed != null ? opt.restSpeed : 0.01;
+      this.onUpdate = opt.onUpdate || null;
+      this.onRest   = opt.onRest   || null;
+      this._last = 0;
+      this._running = false;
+    }
+    get omega() { return (2 * Math.PI) / Math.max(0.01, this.duration); }
+    get zeta()  { return 1 - Math.min(0.99, Math.max(0, this.bounce)); }
+
+    set(target, opt) {
+      if (opt) {
+        if (opt.duration != null) this.duration = opt.duration;
+        if (opt.bounce   != null) this.bounce   = opt.bounce;
+      }
+      this.target = target;
+      if (!this._running) {
+        this._last = 0;
+        this._running = true;
+        active.add(this);
+        ensureLoop();
+      }
+      return this;
+    }
+    setPosition(x, v) {
+      this.position = x;
+      if (v != null) this.velocity = v;
+      this._emit();
+    }
+    stop() { this._running = false; active.delete(this); this.velocity = 0; }
+    jumpTo(x) { this.position = x; this.target = x; this.velocity = 0; this.stop(); this._emit(); }
+    _emit() { if (this.onUpdate) this.onUpdate(this.position, this.velocity); }
+
+    _step(now) {
+      if (!this._last) { this._last = now; return true; }
+      let dt = (now - this._last) / 1000;
+      this._last = now;
+      if (dt <= 0) return true;
+      if (dt > MAX_FRAME) dt = MAX_FRAME;
+
+      const omega = this.omega, zeta = this.zeta;
+      let remain = dt;
+      while (remain > 0) {
+        const h = Math.min(remain, MAX_SUBSTEP);
+        const a = -2 * zeta * omega * this.velocity
+                  - omega * omega * (this.position - this.target);
+        this.velocity += a * h;
+        this.position += this.velocity * h;
+        remain -= h;
+      }
+
+      const dx = Math.abs(this.position - this.target);
+      const dv = Math.abs(this.velocity);
+      if (dx < this.restDelta && dv < this.restSpeed) {
+        this.position = this.target;
+        this.velocity = 0;
+        this._emit();
+        this._running = false;
+        active.delete(this);
+        if (this.onRest) this.onRest();
+        return false;
+      }
+      this._emit();
+      return true;
+    }
+  }
+
+  function inertial(x, v, opt) {
+    opt = opt || {};
+    const friction  = opt.friction  != null ? opt.friction  : 5;
+    const restSpeed = opt.restSpeed != null ? opt.restSpeed : 0.5;
+    const onUpdate  = opt.onUpdate || null;
+    const onRest    = opt.onRest   || null;
+    let last = 0, raf = 0, cancelled = false;
+
+    function step(now) {
+      if (cancelled) return;
+      if (!last) { last = now; raf = requestAnimationFrame(step); return; }
+      let dt = (now - last) / 1000;
+      last = now;
+      if (dt > MAX_FRAME) dt = MAX_FRAME;
+      let remain = dt;
+      while (remain > 0) {
+        const h = Math.min(remain, MAX_SUBSTEP);
+        x += v * h;
+        v *= Math.exp(-friction * h);
+        remain -= h;
+      }
+      if (onUpdate) onUpdate(x, v);
+      if (Math.abs(v) < restSpeed) { if (onRest) onRest(); return; }
+      raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+    return { cancel() { cancelled = true; cancelAnimationFrame(raf); } };
+  }
+
+  function to(from, target, onUpdate, opt) {
+    const sp = new SpringValue(from, Object.assign({ onUpdate: onUpdate }, opt || {}));
+    sp.set(target);
+    return sp;
+  }
+
+  return { SpringValue, inertial, to };
+})();
+
 /* ══════════ 基础设施 ══════════ */
 const $ = s => document.querySelector(s);
 const hasNative = typeof Native !== 'undefined';
@@ -829,12 +1451,16 @@ let cfg = store.get('config', {});
 let personas = store.get('personas', []);
 
 function show(sc) {
-  document.querySelectorAll('.screen').forEach(e => e.classList.remove('on'));
-  $('#chatScreen').classList.remove('on');
-  if (sc === 'chat') $('#chatScreen').classList.add('on');
-  else $(sc).classList.add('on');
-  // 切到列表页时刷新内容：空列表的引导文案也在 renderList 里，
-  // 不刷新就只有标题和按钮，中间一片空白（老版是把提示写在 HTML 里）
+  document.querySelectorAll('.screen').forEach(e => {
+    e.classList.remove('on', 'hasTabbar');
+  });
+  $('#chatScreen').classList.remove('on', 'hasTabbar');
+  const el = (sc === 'chat') ? $('#chatScreen') : $(sc);
+  el.classList.add('on');
+  // 除启动/协议/向导外，内容区都要给底部导航让位
+  const hideBar = (sc === '#s1' || sc === '#s2' || sc === '#s3');
+  $('#tabbar').classList.toggle('hide', hideBar);
+  if (!hideBar) el.classList.add('hasTabbar');
   if (sc === '#sList') renderList();
 }
 function tip(el, ok, text) {
@@ -1039,8 +1665,6 @@ function renderList() {
   personas.forEach((p, i) => {
     const d = document.createElement('div');
     d.className = 'p';
-    // 逐条延迟入场，形成瀑布感
-    d.style.animationDelay = (i * 55) + 'ms';
     const n = (p.history || []).length;
     d.innerHTML = (p.avatar
         ? `<img src="${p.avatar}">`
@@ -1050,12 +1674,280 @@ function renderList() {
          <div class="go">›</div>`;
     d.onclick = () => openChat(p.id);
     box.appendChild(d);
+    // 交错入场：第 i 个延后 i*45ms 再弹。
+    // 用 setTimeout 拉开起点是为了「依次出现」，但每个元素自身的运动
+    // 仍然是弹簧，且中途再次渲染时旧弹簧直接跳到位、不会卡在半路。
+    const delay = i * 45;
+    d.style.opacity = '0';
+    setTimeout(() => {
+      if (!d.isConnected) return;
+      Spring.to(22, 0, v => {
+        d.style.transform = `translateY(${v}px)`;
+        d.style.opacity = String(Math.min(1, Math.max(0, 1 - v / 24)));
+      }, Object.assign(themeMotion(), { restDelta: 0.05, restSpeed: 0.5,
+           onRest: () => { d.style.transform = ''; d.style.opacity = ''; } }));
+    }, delay);
   });
 }
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 $('#btn-new').onclick = () => startNewPersona();
+
+/* ══════════ 主题 ══════════ */
+// 主题清单：只存 key，颜色由 CSS 的 html[data-theme=...] 决定
+const THEMES = [
+  {key:'crimson',       name:'赤潮',    bg:'#0d0f14', ac:'#c41d3b', fg:'#f2f4f8'},
+  {key:'bauhaus',       name:'包豪斯',  bg:'#f2ede4', ac:'#d0202b', fg:'#111111'},
+  {key:'constructivism',name:'构成主义',bg:'#e8e4da', ac:'#c8102e', fg:'#100d0a'},
+  {key:'dada',          name:'达达',    bg:'#f4f1e8', ac:'#e8452c', fg:'#1a1815'},
+  {key:'pixel',         name:'像素',    bg:'#16162a', ac:'#3ddc84', fg:'#e8e8ff'},
+  {key:'ink',           name:'水墨',    bg:'#f3f0e8', ac:'#2b2b2b', fg:'#22201b'},
+  {key:'glitch',        name:'故障',    bg:'#0a0a0f', ac:'#00fff0', fg:'#f0f0ff'},
+  {key:'glass',         name:'液体玻璃',bg:'#12141d', ac:'#7c8dff', fg:'#f6f7ff'},
+  {key:'nordic',        name:'北欧',    bg:'#eef1f0', ac:'#3d6b5c', fg:'#1f2b28'},
+  {key:'terminal',      name:'终端',    bg:'#000a00', ac:'#33ff33', fg:'#33ff33'},
+  {key:'memphis',       name:'孟菲斯',  bg:'#fdf6ec', ac:'#ff4f7b', fg:'#1f1f1f'},
+  {key:'indigo',        name:'靛蓝',    bg:'#0a0f1c', ac:'#2f5cf5', fg:'#eef2fa'},
+  {key:'paper',         name:'纸白',    bg:'#f6f5f2', ac:'#b8232f', fg:'#1b1c1a'},
+  {key:'moss',          name:'苔绿',    bg:'#0b1210', ac:'#1f9d5c', fg:'#f0f6f1'},
+  {key:'amber',         name:'琥珀',    bg:'#12100c', ac:'#d4861c', fg:'#faf5ea'},
+  {key:'graphite',      name:'石墨',    bg:'#0c0d0e', ac:'#6a727a', fg:'#f0f1f2'},
+  {key:'sunset',        name:'日落',    bg:'#160e1f', ac:'#ff7a45', fg:'#fff0f6'},
+];
+
+/* 每个风格的动效性格：读 CSS 变量，让弹簧跟着风格走。
+   终端要快而硬，水墨要慢而柔，玻璃要弹一点。 */
+function themeMotion() {
+  const cs = getComputedStyle(document.documentElement);
+  const d = parseFloat(cs.getPropertyValue('--dur')) || 0.5;
+  const b = parseFloat(cs.getPropertyValue('--bounce'));
+  return {duration: d, bounce: isNaN(b) ? 0.16 : b};
+}
+
+function applyTheme(key) {
+  document.documentElement.setAttribute('data-theme', key);
+  try { localStorage.setItem('oc_theme', key); } catch (e) {}
+  // 安卓状态栏跟着主题走，否则浅色主题下顶部还是白字
+  try {
+    if (window.Native && window.Native.setTheme) window.Native.setTheme(key);
+  } catch (e) {}
+  // 只移动选中框 + 更新文字高亮，不重建整个网格
+  // （重建会让弹簧状态丢失，选中框就会跳）
+  const g = $('#themeGrid');
+  if (g) {
+    g.querySelectorAll('.tcard').forEach(c => {
+      c.classList.toggle('on', c.dataset.themeKey === key);
+    });
+    moveThemeFrame(key, true);
+    // 换风格后指示条的弹簧节奏跟上
+    if (tabIndX && tabIndW) {
+      const m = themeMotion();
+      tabIndX.duration = m.duration * 0.84;
+      tabIndX.bounce = m.bounce;
+      tabIndW.duration = m.duration * 0.84;
+      tabIndW.bounce = m.bounce;
+    }
+  }
+}
+
+function currentTheme() {
+  return document.documentElement.getAttribute('data-theme') || 'crimson';
+}
+
+function renderThemeGrid() {
+  const g = $('#themeGrid');
+  if (!g) return;
+  const curKey = currentTheme();
+  g.innerHTML = '';
+
+  // 选中框是一个独立的滑动层，而不是每个卡片各自描边。
+  // 切换主题时它从旧卡片弹到新卡片（保留速度，可中断），
+  // 比「旧卡取消描边 + 新卡加描边」两个瞬间切换自然得多。
+  const frame = document.createElement('div');
+  frame.className = 'tframe';
+  g.appendChild(frame);
+
+  THEMES.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'tcard' + (t.key === curKey ? ' on' : '');
+    d.dataset.themeKey = t.key;
+    // 预览块：底色 + 一条主色 + 一个字形，比三个小方块好认得多
+    d.innerHTML = `<div class="tprev" style="background:${t.bg}">
+        <span class="tprevBar" style="background:${t.ac}"></span>
+        <span class="tprevTxt" style="color:${t.fg}">Aa</span>
+      </div><div class="tname">${t.name}</div>`;
+    d.onclick = () => applyTheme(t.key);
+    g.appendChild(d);
+  });
+
+  // 等布局完成再定位
+  requestAnimationFrame(() => moveThemeFrame(curKey, false));
+}
+
+/* 主题选中框移动 */
+let _themeFrameX = null, _themeFrameY = null, _themeFrameW = null, _themeFrameH = null;
+
+function moveThemeFrame(key, animate) {
+  const g = $('#themeGrid');
+  const frame = g && g.querySelector('.tframe');
+  const card = g && g.querySelector(`.tcard[data-theme-key="${key}"]`);
+  if (!frame || !card) return;
+
+  const gr = g.getBoundingClientRect();
+  const cr = card.getBoundingClientRect();
+  const x = cr.left - gr.left, y = cr.top - gr.top;
+  const w = cr.width, h = cr.height;
+
+  if (!_themeFrameX || animate === false) {
+    frame.style.transform = `translate(${x}px, ${y}px)`;
+    frame.style.width = w + 'px';
+    frame.style.height = h + 'px';
+    if (!_themeFrameX) {
+      _themeFrameX = new Spring.SpringValue(x, mkFrameUpd('x', frame));
+      _themeFrameY = new Spring.SpringValue(y, mkFrameUpd('y', frame));
+      _themeFrameW = new Spring.SpringValue(w, mkFrameUpd('w', frame));
+      _themeFrameH = new Spring.SpringValue(h, mkFrameUpd('h', frame));
+      applyFrame(frame);
+      return;
+    }
+    return;
+  }
+  _themeFrameX.set(x);
+  _themeFrameY.set(y);
+  _themeFrameW.set(w);
+  _themeFrameH.set(h);
+}
+
+let _frameState = { x: 0, y: 0, w: 0, h: 0 };
+function mkFrameUpd(k, frame) {
+  return v => {
+    _frameState[k] = v;
+    applyFrame(frame);
+  };
+}
+function applyFrame(frame) {
+  const f = _frameState;
+  frame.style.transform = `translate(${f.x}px, ${f.y}px)`;
+  frame.style.width = f.w + 'px';
+  frame.style.height = f.h + 'px';
+}
+
+// 启动时恢复上次选的主题
+(function initTheme(){
+  let t = 'crimson';
+  try { t = localStorage.getItem('oc_theme') || 'crimson'; } catch (e) {}
+  if (!THEMES.some(x => x.key === t)) t = 'crimson';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+
+
+/* ══════════ 底部导航 ══════════ */
+
+// 指示条的弹簧：位置和宽度各一个，都从中途接续，不回零重播
+let tabIndX = null;   // SpringValue
+let tabIndW = null;   // SpringValue
+let curTab = 'chat';
+
+function layoutTabIndicator(tabKey, animate) {
+  const bar = $('#tabbar');
+  const ind = $('#tabIndicator');
+  if (!bar || !ind) return;
+  const btn = bar.querySelector(`.tab[data-tab="${tabKey}"]`);
+  if (!btn) return;
+
+  const barRect = bar.getBoundingClientRect();
+  const r = btn.getBoundingClientRect();
+  const x = r.left - barRect.left;
+  const w = r.width;
+
+  if (!tabIndX) {
+    // 首次：直接落位，不做动画（避免启动时从 0 弹过来）
+    tabIndX = new Spring.SpringValue(x, {
+      duration: 0.42, bounce: 0.18, restDelta: 0.2, restSpeed: 2,
+      onUpdate: v => { ind.style.transform = `translateX(${v}px)`; }
+    });
+    tabIndW = new Spring.SpringValue(w, {
+      duration: 0.42, bounce: 0.18, restDelta: 0.2, restSpeed: 2,
+      onUpdate: v => { ind.style.width = v + 'px'; }
+    });
+    tabIndX.jumpTo(x);
+    tabIndW.jumpTo(w);
+    return;
+  }
+
+  if (animate === false) {
+    tabIndX.jumpTo(x);
+    tabIndW.jumpTo(w);
+  } else {
+    /* 关键：set() 只改 target，保留当前 position 与 velocity。
+       连点「对话↔设置」时指示条会在半路折返，而不是跳回起点重来。 */
+    tabIndX.set(x);
+    tabIndW.set(w);
+  }
+}
+
+function setTab(key, animate) {
+  curTab = key;
+  document.querySelectorAll('#tabbar .tab').forEach(b => {
+    b.classList.toggle('on', b.dataset.tab === key);
+  });
+
+  if (key === 'chat') {
+    // 回对话：有当前角色就进聊天，否则进伴侣列表
+    if (cur) show('chat');
+    else show('#sList');
+  } else {
+    cur = null;
+    openSettings();     // 全局设置（隐藏角色专属区块）
+  }
+  layoutTabIndicator(key, animate);
+}
+
+document.querySelectorAll('#tabbar .tab').forEach(btn => {
+  btn.onclick = () => {
+    if (btn.dataset.tab === curTab) {
+      // 重复点当前标签：回退到该区域的根页面
+      if (curTab === 'chat') { cur = null; show('#sList'); }
+      return;
+    }
+    setTab(btn.dataset.tab, true);
+  };
+});
+
+// 窗口尺寸变化时重新对位（不做动画）
+window.addEventListener('resize', () => {
+  layoutTabIndicator(curTab, false);
+});
+
+
+/* ══════════ 按压反馈（弹簧）══════════ */
+// 按下即缩到 0.96，松手弹回 1。用弹簧而不是 CSS transition：
+// 连按时第二下的起点是当前缩放值，不会跳回 1 再重播。
+// 从静止到第一次按下也要有动画——弹簧天然满足，不需要特判。
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('button, .p, .tcard, .chip, .pitem, .sbtn, .gitem');
+  if (!b) return;
+  if (b.disabled) return;
+  if (!b._pressSpring) {
+    const m = themeMotion();
+    b._pressSpring = new Spring.SpringValue(1, {
+      duration: Math.max(0.26, m.duration * 0.7),
+      bounce: Math.min(0.3, m.bounce + 0.06),
+      restDelta: 0.002, restSpeed: 0.02,
+      onUpdate: v => { b.style.transform = `scale(${v})`; }
+    });
+  }
+  b._pressSpring.set(0.96);
+}, { passive: true });
+
+function _releasePress(e) {
+  const b = e.target.closest('button, .p, .tcard, .chip, .pitem, .sbtn, .gitem');
+  if (!b || !b._pressSpring) return;
+  b._pressSpring.set(1);
+}
+document.addEventListener('pointerup', _releasePress, { passive: true });
+document.addEventListener('pointercancel', _releasePress, { passive: true });
 
 /* ══════════ 聊天 ══════════ */
 let cur = null, busy = false;
@@ -1085,6 +1977,12 @@ function addBubble(text, cls) {
   d.className = 'm ' + cls;
   d.textContent = text;
   $('#log').appendChild(d);
+  // 弹簧入场：位移 + 透明度 + 缩放一起弹，中断时也能接续
+  Spring.to(14, 0, v => {
+    d.style.transform = `translateY(${v}px) scale(${1 - v * 0.0022})`;
+    d.style.opacity = String(Math.min(1, Math.max(0, 1 - v / 16)));
+  }, Object.assign(themeMotion(), { restDelta: 0.05, restSpeed: 0.5,
+       onRest: () => { d.style.transform = ''; d.style.opacity = ''; } }));
   return d;
 }
 function scrollBottom() { const l = $('#log'); l.scrollTop = l.scrollHeight; }
@@ -1389,7 +2287,14 @@ const settingsEl = $('#settings');
 const plistSheet = $('#plistSheet');
 
 function openSettings() {
-  if (!cur) return;
+  // 从主界面进入时没有当前角色：隐藏只对角色有意义的区块，
+  // 保留「外观 / 关于 / 账号」这些全局设置。
+  const hasCur = !!cur;
+  document.querySelectorAll('#settings .charOnly').forEach(el => {
+    el.style.display = hasCur ? '' : 'none';
+  });
+  renderThemeGrid();
+  if (!hasCur) { settingsEl.classList.add('on'); return; }
   $('#setName').value = cur.name || '';
   $('#setBrief').value = cur.brief || '';
   $('#setPersona').value = cur.persona || '';
@@ -1551,7 +2456,7 @@ function toast(t) {
   if (!el) {
     el = document.createElement('div'); el.id = '__toast';
     el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);'
-      + 'background:#1f2530;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;'
+      + 'background:#1f2530;color:#fff;padding:10px 18px;border-radius:var(--r);font-size:13px;'
       + 'z-index:2000;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap';
     document.body.appendChild(el);
   }
@@ -1772,7 +2677,7 @@ function renderUpdate(info) {
   if (isNewer(info.tag, cur)) {
     if (badge) badge.style.display = 'inline-block';
     area.innerHTML =
-      '<div style="padding:10px 12px;background:#f0f7ff;border-radius:9px;font-size:13px">'
+      '<div style="padding:10px 12px;background:#f0f7ff;border-radius:var(--r);font-size:13px">'
       + '<div style="font-weight:600;margin-bottom:6px">发现新版本 ' + esc(info.tag) + '</div>'
       + '<div style="display:flex;gap:8px;margin-top:8px">'
       + (info.apk ? '<button class="sbtn" id="btnGotoDownload" style="flex:1;margin:0">去下载</button>' : '')

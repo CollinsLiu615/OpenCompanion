@@ -568,4 +568,52 @@ public class MainActivity extends Activity {
         }
         return n + ": " + m;
     }
+
+    /**
+     * 按主题名设置状态栏底色与图标明暗。
+     *
+     * 主题名 → 颜色的对应关系必须与 assets/index.html 里的
+     * html[data-theme=...] 的 --bg 一致，否则切换时会有色差。
+     * 浅色主题要用深色图标（light icons = false），深色主题反之。
+     */
+    private void applyThemeToStatusBar(String themeKey) {
+        int color;
+        boolean lightIcons;
+        switch (themeKey == null ? "" : themeKey) {
+            case "indigo":   color = 0xFF0A0F1C; lightIcons = true;  break;
+            case "moss":     color = 0xFF0B1210; lightIcons = true;  break;
+            case "amber":    color = 0xFF12100C; lightIcons = true;  break;
+            case "graphite": color = 0xFF0C0D0E; lightIcons = true;  break;
+            case "paper":    color = 0xFFF6F5F2; lightIcons = false; break;
+            case "crimson":
+            default:         color = 0xFF0D0F14; lightIcons = true;  break;
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= 21) {
+                getWindow().setStatusBarColor(color);
+                getWindow().setNavigationBarColor(color);
+            }
+            if (Build.VERSION.SDK_INT >= 30) {
+                // 30+ 用 WindowInsetsController，setSystemUiVisibility 已废弃
+                android.view.WindowInsetsController ctl = getWindow().getInsetsController();
+                if (ctl != null) {
+                    int mask = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                             | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                    ctl.setSystemBarsAppearance(lightIcons ? 0 : mask, mask);
+                }
+            } else if (Build.VERSION.SDK_INT >= 23) {
+                android.view.View v = getWindow().getDecorView();
+                int flags = v.getSystemUiVisibility();
+                if (lightIcons) flags &= ~android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                else            flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                if (Build.VERSION.SDK_INT >= 26) {
+                    if (lightIcons) flags &= ~android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                    else            flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                }
+                v.setSystemUiVisibility(flags);
+            }
+        } catch (Exception ignored) {
+            // 状态栏配色失败不影响功能，静默忽略
+        }
+    }
 }

@@ -39,19 +39,44 @@ OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自�
 <tr>
 <td><img src="docs/screenshots/splash.png" width="180" alt="启动动画"></td>
 <td><img src="docs/screenshots/wizard.png" width="180" alt="创建向导"></td>
+<td><img src="docs/screenshots/list.png" width="180" alt="伴侣列表"></td>
 <td><img src="docs/screenshots/chat.png" width="180" alt="聊天"></td>
-<td><img src="docs/screenshots/settings.png" width="180" alt="设置面板"></td>
 </tr>
 <tr>
 <td align="center">启动动画</td>
 <td align="center">三步创建</td>
+<td align="center">伴侣列表</td>
 <td align="center">对话</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td><img src="docs/screenshots/themes.png" width="180" alt="主题选择器"></td>
+<td><img src="docs/screenshots/theme-bauhaus.png" width="180" alt="包豪斯"></td>
+<td><img src="docs/screenshots/theme-ink.png" width="180" alt="水墨"></td>
+<td><img src="docs/screenshots/settings.png" width="180" alt="设置面板"></td>
+</tr>
+<tr>
+<td align="center">17 套主题</td>
+<td align="center">包豪斯</td>
+<td align="center">水墨</td>
 <td align="center">设置</td>
 </tr>
 </table>
 </div>
 
 ---
+
+## 主题
+
+内置 17 套风格包：赤潮、包豪斯、构成主义、达达、像素、水墨、故障、
+液体玻璃、北欧、终端、孟菲斯、靛蓝、纸白、苔绿、琥珀、石墨、日落。
+
+每套不只是换颜色——配色、字体、圆角、描边、投影、背景纹理和动效
+节奏都会一起变。在「设置 → 外观」里选，选项即时生效并记在手机上。
 
 ## 安装
 
