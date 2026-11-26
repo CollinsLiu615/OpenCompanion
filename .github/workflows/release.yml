@@ -75,7 +75,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: android/OpenCompanion.apk
-          name: OpenCompanion v${{ github.ref_name }}
+          # ref_name 已带 v 前缀（v0.1.1），不要再加一个
+          name: OpenCompanion ${{ github.ref_name }}
           draft: false
           prerelease: false
           # 说明正文取自本地的 RELEASE_NOTES.md（存在才用），
