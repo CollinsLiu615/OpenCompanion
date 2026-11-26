@@ -1835,10 +1835,25 @@ function applyFrame(frame) {
 
 // 启动时恢复上次选的主题
 (function initTheme(){
+  // 优先用 URL 里的 ?theme=xxx：电脑上做预览页时会用一堆 iframe 并排
+  // 展示不同主题，此时不能读 localStorage（会互相覆盖）。
+  // 正常使用时没有这个参数，仍然读本地保存的选择。
   let t = 'crimson';
-  try { t = localStorage.getItem('oc_theme') || 'crimson'; } catch (e) {}
+  try {
+    const fromUrl = new URLSearchParams(location.search).get('theme');
+    if (fromUrl) t = fromUrl;
+    else t = localStorage.getItem('oc_theme') || 'crimson';
+  } catch (e) {}
   if (!THEMES.some(x => x.key === t)) t = 'crimson';
   document.documentElement.setAttribute('data-theme', t);
+
+  // 预览模式下把启动动画和协议门跳过，直接看界面。
+  // 只在带 ?theme= 时生效，正常打开 App 不受影响。
+  try {
+    if (new URLSearchParams(location.search).has('theme')) {
+      window.__OC_PREVIEW__ = true;
+    }
+  } catch (e) {}
 })();
 
 
@@ -2499,6 +2514,30 @@ function enterApp() {
 }
 
 async function runSplash() {
+  // 预览模式：跳过启动动画和协议门，直接看界面
+  if (window.__OC_PREVIEW__) {
+    $('#splash').style.display = 'none';
+    $('#consent').classList.remove('on');
+    splashDone = true;
+    // 灌几条示例数据，让预览能看到列表页和聊天气泡的样子
+    if (!personas.length) {
+      personas.push({id:'demo1', name:'林浅', brief:'嘴硬心软的女大学生',
+                     persona:'21 岁，计算机系大三。说话直，爱吐槽。',
+                     history:[{role:'assistant',content:'你今天怎么这么晚才回家？'},
+                              {role:'user',content:'加班了，刚到家'},
+                              {role:'assistant',content:'啧，又加班。吃了没？'},
+                              {role:'user',content:'还没，叫个外卖吧'},
+                              {role:'assistant',content:'别叫外卖了，厨房有面条，我给你下了。快去洗手。'}],
+                     avatar:null, schedules:[]});
+      personas.push({id:'demo2', name:'江溯', brief:'沉默寡言的旧友',
+                     persona:'话少，但记事。', history:new Array(52).fill({role:'user',content:'嗯'}),
+                     avatar:null, schedules:[]});
+      personas.push({id:'demo3', name:'阿汀', brief:'还没聊过',
+                     persona:'刚认识。', history:[], avatar:null, schedules:[]});
+    }
+    renderList(); show('#sList');
+    return;
+  }
   const sp = $('#splash');
   const s1 = $('#stage1'), s2 = $('#stage2');
   const icon = $('#brandIcon'), zh = $('#zh'), en = $('#en');
