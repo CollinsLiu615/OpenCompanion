@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.opencompanion.app"
-    android:versionCode="8"
-    android:versionName="0.1.2">
+    android:versionCode="7"
+    android:versionName="0.1.1">
 
     <!-- 网络 -->
     <!-- targetSdk 必填：Android 14(API 34) 起禁止安装 targetSdk < 23 的应用，
