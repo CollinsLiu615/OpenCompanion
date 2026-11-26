@@ -557,6 +557,13 @@ body{padding-bottom:0}
 .chWho{flex:1;min-width:0}
 .chWho .nm{font-size:16px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chWho .st{font-size:11px;color:var(--dim2);margin-top:1px}
+/* AI 生成内容标识：合规要求对话界面持续可见，不能只写在协议里 */
+.chWho .nm{display:flex;align-items:center;gap:6px}
+.aiTag{flex-shrink:0;font-size:9px;font-weight:900;letter-spacing:.5px;
+       line-height:1;padding:3px 5px;border-radius:3px;
+       background:color-mix(in srgb, var(--accent) 18%, transparent);
+       border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+       color:var(--accent2)}
 .chAvBtn{width:40px;height:40px;min-width:40px;padding:0;margin:0;flex-shrink:0;
          border:none;background:transparent;cursor:pointer;box-shadow:none;
          display:flex;align-items:center;justify-content:center}
@@ -759,6 +766,33 @@ header .bk:active{color:var(--accent2)}
           font-size:11px;color:var(--dim2);letter-spacing:.2em;
           opacity:0;transition:opacity .6s}
 #skipHint.in{opacity:1}
+
+/* ══════ 首次配置的第三方告知（单独同意）══════ */
+/* 内容可能比屏幕高：让 body 区自己滚，按钮固定在底部，
+   否则按钮会被顶出视口，用户根本点不到「继续」。 */
+#aiNotice.on{display:flex;align-items:flex-end;justify-content:center;transform:none;visibility:visible}
+#aiNotice .box{width:100%;background:var(--card);max-height:calc(100dvh - 28px);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;border:var(--bd) solid var(--line2);
+  border-bottom:none;display:flex;flex-direction:column;overflow:hidden;
+  animation:sheetUp .34s var(--ease) both}
+#aiNotice .hd{padding:20px 18px 14px;border-bottom:1px solid var(--line)}
+#aiNotice .hd h2{margin:0 0 4px;font-size:20px;font-weight:900;letter-spacing:-.4px}
+#aiNotice .hd p{margin:0;font-size:11px;color:var(--dim)}
+#aiNotice .bd{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 18px;
+  font-size:13px;line-height:1.75;-webkit-overflow-scrolling:touch}
+#aiNotice .bd h3{font-size:13.5px;margin:16px 0 6px;color:var(--fg);font-weight:800}
+#aiNotice .bd h3:first-child{margin-top:0}
+#aiNotice .bd p{margin:0 0 9px;color:var(--dim)}
+#aiNotice .bd strong{color:var(--fg)}
+#aiNotice .chk{flex:0 0 auto;padding:14px 18px;border-top:1px solid var(--line);
+  display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.5;color:var(--dim)}
+#aiNotice .chk input{margin:2px 0 0;flex-shrink:0;accent-color:var(--accent);width:17px;height:17px}
+#aiNotice .ft{flex:0 0 auto;padding:12px 18px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);display:flex;gap:10px}
+#aiNotice .ft button{flex:1;height:46px;border-radius:var(--r);border:var(--bd) solid var(--line2);
+  background:transparent;color:var(--fg);font:inherit;font-size:14px;font-weight:800;cursor:pointer}
+#aiNotice .ft button.primary{background:var(--accent);border-color:transparent;color:#fff}
+#aiNotice .ft button:disabled{opacity:.4;cursor:not-allowed}
 
 /* ══════ 协议门 ══════ */
 #consent{position:fixed;inset:0;background:var(--bg);z-index:1020;display:none;
@@ -984,12 +1018,12 @@ header .bk:active{color:var(--accent2)}
   <div class="box">
     <div class="hd">
       <h2>用户协议与隐私政策</h2>
-      <p>版本 v1.0 · 生效日期 2026 年 11 月 17 日</p>
+      <p>版本 v1.1 · 生效日期 2026 年 11 月 27 日</p>
     </div>
     <div class="bd" id="consentBody"></div>
     <div class="chk">
       <input type="checkbox" id="agreeChk">
-      <label for="agreeChk">我已阅读并同意《用户协议与隐私政策》的全部条款</label>
+      <label for="agreeChk">我已阅读并同意《用户协议与隐私政策》的全部条款，并已理解人设与对话内容将发送至我选择的第三方 AI 服务</label>
     </div>
     <div class="warn" id="warn">请先勾选上方选项，才能继续。</div>
     <div class="ft">
@@ -1027,6 +1061,46 @@ header .bk:active{color:var(--accent2)}
   <button id="btn-test" class="ghost">测试连接</button>
   <button id="btn-next1">下一步</button>
   <div class="msg" id="m1"></div>
+</div>
+
+<!-- ══════ 首次配置时的第三方传输告知（单独同意，不可跳过）══════ -->
+<div class="sheet maskSheet" id="aiNotice">
+  <div class="box">
+    <div class="hd">
+      <h2>开始前，请先了解</h2>
+      <p>这一步会决定你的数据发往哪里</p>
+    </div>
+    <div class="bd">
+      <p><strong>对话不是发生在这台手机上，而是发生在你选择的 AI 服务商那里。</strong></p>
+
+      <h3>会发送什么</h3>
+      <p>每次发送消息时，本软件会把你写的<strong>角色人设、完整对话历史、这次输入的内容</strong>
+      一起发送到你刚填写的接口地址。创建角色时，你填的名字和描述也会发过去。</p>
+      <p><strong>不会发送</strong>：设备信息、位置、通讯录、相册、已安装应用清单。头像只存本地。</p>
+
+      <h3>发给谁</h3>
+      <p>接收方就是你上面填的接口地址对应的公司。本软件不知道它在哪、怎么处理数据——
+      <strong>这取决于你填了谁</strong>。请确认你信任这家服务商。</p>
+
+      <h3>如果是境外服务</h3>
+      <p>若你填的是境外服务商（如 OpenAI、Anthropic、Google），你的人设和对话内容
+      <strong>将传输到中国大陆境外</strong>。建议先查阅该服务商的隐私政策与数据存储地区。</p>
+
+      <h3>给你的建议</h3>
+      <p>不要在对话里透露身份证号、银行卡号、病历、精确住址等敏感信息。</p>
+
+      <p style="margin-top:14px;color:var(--dim)">本软件自身不保存也不经手你的任何对话内容，
+      全部数据只存在这台手机上。协议全文见「设置 → 我 → 关于」。</p>
+    </div>
+    <div class="chk">
+      <input type="checkbox" id="aiNoticeChk">
+      <label for="aiNoticeChk">我已了解我的对话内容会被发送至我选择的第三方服务</label>
+    </div>
+    <div class="ft">
+      <button id="btnNoticeBack">返回修改</button>
+      <button class="primary" id="btnNoticeOk" disabled>继续</button>
+    </div>
+  </div>
 </div>
 
 <!-- ② 人设 -->
@@ -1105,8 +1179,8 @@ header .bk:active{color:var(--accent2)}
       </svg>
     </button>
     <div class="chWho">
-      <div class="nm" id="chNm"></div>
-      <div class="st">本地对话 · 数据不出手机</div>
+      <div class="nm"><span id="chNm"></span><span class="aiTag">AI</span></div>
+      <div class="st">虚拟角色 · 回复由 AI 生成</div>
     </div>
     <!-- 点头像进伴侣设定：人设、头像、定时问候都在那里 -->
     <button class="chAvBtn" id="btnPersona" aria-label="伴侣设定">
@@ -1372,6 +1446,20 @@ header .bk:active{color:var(--accent2)}
       </label>
       <div class="hint" id="aiHint">开启后，闹钟响时会把你的人设与这句话发给 AI 服务生成回复。
         若无网络或接口出错，将改为直接弹出上面写的文字。</div>
+      <!-- 首次开启需单独确认：这一条会额外把角色设定发出去，
+           不能只靠协议里的总括同意 -->
+      <div id="aiGreetNotice" style="display:none;margin-top:10px;padding:12px 13px;
+           border:var(--bd) solid color-mix(in srgb, var(--accent) 40%, transparent);
+           border-radius:var(--r);background:color-mix(in srgb, var(--accent) 6%, transparent)">
+        <div style="font-size:12.5px;line-height:1.65;color:var(--dim)">
+          <strong style="color:var(--fg)">开启前请确认</strong>：到点时，这个角色的
+          <strong style="color:var(--fg)">完整人设</strong>和这条问候的主题会被发送到
+          你配置的 AI 服务商。这与你平时发消息时的传输是<strong style="color:var(--fg)">独立</strong>的，
+          需要你单独同意。
+        </div>
+        <button class="ghost" id="btnAiGreetOk"
+                style="margin-top:10px;font-size:13px;height:38px">我知道，开启</button>
+      </div>
 
       <label style="margin-top:14px">快捷选择</label>
       <div class="chips">
@@ -1670,14 +1758,49 @@ $('#btn-test').onclick = async () => {
   tip($('#m1'), r.ok, r.ok ? '连接成功：' + (r.text || '') : r.error);
 };
 
+/* 首次配置时的第三方传输告知（单独同意）。
+   协议里的总括同意不能替代这一步：用户是在具体知道「发什么、发给谁、
+   可能出境」之后才作出的同意。已同意过的记在 cfg.noticeOk，只弹一次。 */
+let pendingCfg = null;
+
 $('#btn-next1').onclick = () => {
   const base_url = $('#base_url').value.trim();
   const model = $('#model').value.trim();
   const key = $('#api_key').value.trim();
   if (!base_url || !model) { tip($('#m1'), false, '接口地址和模型名要填'); return; }
   if (!key && !cfg.api_key) { tip($('#m1'), false, '请填 API Key'); return; }
-  cfg = {base_url, model, api_key: key || cfg.api_key};
+
+  const next = {base_url, model, api_key: key || cfg.api_key};
+
+  // 已经单独同意过（或本次只是改配置）就不用再弹
+  if (cfg.noticeOk) {
+    cfg = next;
+    store.set('config', cfg);
+    show('#s2');
+    return;
+  }
+
+  pendingCfg = next;
+  $('#aiNoticeChk').checked = false;
+  $('#btnNoticeOk').disabled = true;
+  $('#aiNotice').classList.add('on');
+};
+
+$('#aiNoticeChk').addEventListener('change', e => {
+  $('#btnNoticeOk').disabled = !e.target.checked;
+});
+
+$('#btnNoticeBack').onclick = () => {
+  $('#aiNotice').classList.remove('on');
+  pendingCfg = null;
+};
+
+$('#btnNoticeOk').onclick = () => {
+  if (!$('#aiNoticeChk').checked || !pendingCfg) return;
+  cfg = {...pendingCfg, noticeOk: true, noticeAt: Date.now()};
   store.set('config', cfg);
+  pendingCfg = null;
+  $('#aiNotice').classList.remove('on');
   show('#s2');
 };
 
@@ -2420,6 +2543,8 @@ function openGreetDialog(idx) {
     $('#greetText').value = '';
     $('#greetUseAI').checked = true;
   }
+  // 两条分支都要绑定：之前只绑了「修改」，新增时确认弹不出来
+  bindGreetAiNotice();
   dlg.classList.add('on');
 }
 function closeGreetDialog() { $('#greetDialog').classList.remove('on'); }
@@ -2775,37 +2900,63 @@ const byeEl = $('#bye');
 
 // 协议正文（与电脑端一致的精简版，完整版见 docs/用户协议.md）
 const AGREEMENT_HTML = `
-<p><strong>请您务必审慎阅读、充分理解本协议各条款内容，特别是免除或限制责任的条款。</strong></p>
+<p><strong>请您务必审慎阅读、充分理解本协议各条款内容，特别是以加粗标注的免除或限制责任条款、以及数据向第三方传输的说明。</strong></p>
+
 <h3>一、协议的性质与接受</h3>
-<p>本协议是您与 OpenCompanion 开发者之间就使用本软件订立的具有法律约束力的协议。您点击"我已阅读并同意"，即表示已完整阅读并同意接受全部条款。<strong>如不同意，请勿点击同意并立即停止使用。</strong>未满 18 周岁的，请在法定监护人陪同下阅读并取得同意后使用。</p>
+<p>本协议是您与 OpenCompanion 开发者之间就使用本软件订立的具有法律约束力的协议。您勾选并点击「我已阅读并同意」，即表示已完整阅读并接受全部条款。<strong>如不同意，请点击「不同意，退出」并停止使用。</strong></p>
+
 <h3>二、本软件不提供人工智能能力</h3>
-<p><strong>本软件自身不提供任何人工智能推理能力。</strong>全部对话与内容生成均依赖您自行配置的第三方 AI 服务。API 密钥系您与该第三方的独立法律关系，<strong>由此产生的全部费用由您自行承担</strong>，密钥泄露或超额扣费的风险亦由您承担。本软件不对第三方服务的可用性、稳定性及输出内容的准确性作任何保证。</p>
-<h3>三、您的责任与行为规范</h3>
-<p>您对所创建的角色人设、上传的头像及输入的对话内容负全部责任。承诺不制作、传播含有下列内容的信息：反对宪法基本原则的；危害国家安全、泄露国家秘密、颠覆国家政权的；损害国家荣誉和利益的；煽动民族仇恨、民族歧视的；破坏国家宗教政策、宣扬邪教和封建迷信的；散布谣言、扰乱社会秩序的；淫秽、色情、赌博、暴力、恐怖或教唆犯罪的；侮辱诽谤他人、侵害他人合法权益的；法律行政法规禁止的其他内容。</p>
-<p>您承诺不：未经他人同意擅自使用他人姓名、肖像、声音创建角色；冒充他人或国家机关工作人员；侵犯他人知识产权、隐私权、名誉权、肖像权；利用本软件实施诈骗、骚扰、跟踪等侵害他人权益的行为。<strong>若角色涉及真实人物，您应确保已取得该人物的明确授权，否则全部法律责任由您自行承担。</strong></p>
-<h3>四、AI 生成内容的特别声明</h3>
-<p><strong>AI 生成内容由算法自动产生，不代表开发者观点，且可能存在错误、偏差或不适当之处。</strong>您应自行甄别，不应作为医疗、法律、金融、投资等专业决策依据。AI 对话另一方并非真实人类，不应将其情感依赖替代现实社会交往；如感心理不适，请及时寻求专业帮助。</p>
-<h3>五、数据存储与隐私</h3>
-<p><strong>本软件采用本地存储架构。</strong>除下述情形外，您的全部内容仅存储于本设备，开发者不收集、不上传、不备份、不访问您的任何用户内容，不出售不出租不交换您的个人信息。下列情形数据可能经第三方传输：<strong>（1）调用第三方 AI 服务时，人设与对话内容将被发送至您配置的第三方；（2）生成人设时，您填写的名字与描述同样会发送至该第三方。</strong>定时通知不经过任何第三方服务，也不经过开发者服务器。本软件不设账号系统，不收集手机号、邮箱、身份证件，不进行跨站追踪。本地数据安全取决于您设备的安全状况，设备丢失或被恶意软件攻击导致的数据泄露，开发者不承担责任。</p>
-<p><strong>关于检查更新：</strong>本软件会向 GitHub 查询是否有新版本，这是除你配置的 AI 接口外<strong>唯一</strong>的外部连接。该请求只读取公开的版本号与下载地址，<strong>不上传任何数据</strong>，也不经过开发者控制的服务器。你可以在「关于 → 检查更新」中关闭此功能，关闭后本软件不再发起该请求。</p>
-    <h3>六、定位与通知</h3>
-<p><strong>本版本不收集、不使用任何位置信息</strong>，未申请定位权限，也不包含推送服务。定时通知为<strong>本地通知</strong>，您可以自行选择两种内容模式：</p>
-<p>（1）<strong>固定文本</strong>（默认关闭 AI）：到点直接弹出您填写的文字，<strong>不联网、不调用任何服务</strong>；<br>
-（2）<strong>AI 生成</strong>（需您在每条问候中手动开启）：到点由本机将<strong>该角色的设定与该条问候主题</strong>发送至您配置的第三方 AI 服务以生成回复，再弹出生成结果。若此时无网络或接口出错，将自动改为弹出您填写的原文。</p>
-<p>无论哪种模式，内容均<strong>不经过开发者服务器，也不经过任何第三方推送服务</strong>。您可以随时在系统设置中关闭通知权限，不影响其他功能。</p>
-<h3>七、未成年人保护</h3>
-<p>未满 14 周岁的儿童须经监护人阅读并同意后方可使用。14 至 18 周岁应在监护人指导下使用。<strong>监护人应正确履行监护职责，防范网络沉迷。</strong></p>
-<h3>八、知识产权</h3>
-<p>本软件源代码以 MIT 许可证开源，著作权归原作者所有。软件名称、标识、界面设计等权利归开发者所有。<strong>您创建的人设、头像与对话内容，权利归您所有。</strong>AI 生成内容的权利归属适用第三方服务条款及适用法律。</p>
-<h3>九、免责与责任限制</h3>
-<p><strong>本软件按"现状"提供，不附带任何明示或默示保证</strong>，包括适销性、特定用途适用性、准确性与不侵权的保证。不保证不会中断、无差错或无安全漏洞。<strong>在适用法律允许的最大范围内，对因使用或无法使用本软件产生的任何间接、偶然、特殊、惩罚性或后果性损害，开发者不承担责任。</strong></p>
-<p><strong>在适用法律允许的最大范围内，开发者对您承担的全部赔偿责任总额不超过您实际支付的费用；鉴于本软件免费提供，该金额为零。</strong>本条不适用于故意或重大过失造成的损害，也不适用于法律禁止限制或排除责任的情形。</p>
-<h3>十、服务的变更与终止</h3>
-<p>开发者有权随时变更、暂停或终止全部或部分功能，无需事先通知。您可通过停止使用并删除本软件终止本协议。终止后，关于知识产权、免责与责任限制、争议解决的条款继续有效。</p>
-<h3>十一、法律适用与争议解决</h3>
-<p><strong>本协议适用中华人民共和国法律</strong>（不包括港澳台地区法律）。争议应首先友好协商；协商不成的，任何一方可向被告住所地有管辖权的人民法院起诉。开发者有权修订本协议并在软件内公布，修订生效后继续使用即视为接受。</p>
-<h3>确认声明</h3>
-<p>您确认：（一）已完整阅读并理解全部条款，特别是免责、责任限制、争议解决条款；（二）已理解本软件不提供 AI 能力，需自行配置第三方服务并承担费用；（三）已理解数据存于本地，但人设与对话将发送至第三方；（四）同意自行承担创建角色与输入内容的法律与道德责任；（五）具备完全民事行为能力，或已在监护人同意下使用。</p>
+<p><strong>本软件自身不提供任何人工智能推理能力。</strong>全部对话与内容生成均由您自行配置的第三方 AI 服务完成，费用与密钥安全由您承担。本软件不对第三方的可用性与输出准确性作任何保证。</p>
+
+<h3>三、数据会发送给谁</h3>
+<p>本软件采用「自带密钥」方式，<strong>实际接收方由您填写的接口地址决定</strong>，开发者无法预先穷尽所有可能。为便于您判断，我们说明如下：</p>
+<p><strong>可能的接收方类型</strong>：兼容 OpenAI 接口协议的大模型服务商，包括境内服务商（如深度求索、月之暗面、智谱、阿里云通义等）与境外服务商（如 OpenAI、Anthropic、Google 等），以及任何自建或代理的兼容接口。上述仅为说明，不构成推荐，也不表示开发者与之存在合作关系。</p>
+<p><strong>发送的数据范围</strong>：</p>
+<p>· <strong>AI 对话时</strong> —— 角色人设、完整对话历史、您本次输入的内容；<br>
+· <strong>生成人设时</strong> —— 您填写的名字、描述与补充要求；<br>
+· <strong>AI 生成问候时</strong> —— 该角色设定与该条问候主题。</p>
+<p><strong>不会发送</strong>：设备标识、位置、通讯录、相册、已安装应用列表。<strong>上传的头像只存在本机，不会发送给第三方。</strong></p>
+
+<h3>四、数据出境提示</h3>
+<p><strong>若您配置的第三方服务位于中国大陆境外，您的人设与对话内容将传输至境外。</strong>该传输由您发起并指向您选定的接收方。<strong>建议优先选择境内服务商</strong>，或事先确认境外服务商的数据存储地区与保护水平。请避免在对话中提供身份证号、银行账户、健康状况、精确住址等敏感个人信息。</p>
+
+<h3>五、需要单独同意的情形</h3>
+<p>以下事项会<strong>单独征得您的同意，不与本协议捆绑</strong>，您可以拒绝而不影响其他功能：</p>
+<p>· 首次配置 API 并开始对话前 —— 告知人设与对话将发送至您选择的第三方；<br>
+· 开启「AI 生成问候」时 —— 告知该角色设定与主题将在到点时发送至第三方；<br>
+· 未来若引入定位、相册等新权限 —— 该权限的用途与范围。</p>
+
+<h3>六、AI 生成内容标识</h3>
+<p><strong>AI 对话的另一方并非真实人类。</strong>对话界面会持续显示「AI 生成」说明，并对 AI 回复与您输入的内容作视觉区分。<strong>您不得恶意删除、篡改或隐匿该标识</strong>，也不得使他人误认为 AI 内容出自真实人类。</p>
+<p>AI 内容可能存在错误、偏差或过时之处，不应作为医疗、法律、金融等专业决策依据。如感到心理不适，请及时寻求专业帮助。</p>
+
+<h3>七、数据如何存储与保护</h3>
+<p><strong>本软件采用本地存储架构</strong>，开发者不设账号系统，不收集手机号、邮箱、身份证件，不进行跨站追踪，不出售不出租您的任何个人信息。</p>
+<p><strong>安全措施</strong>：API 密钥加密存储于应用私有目录、数据存于应用沙盒（其他应用无法读取）、默认不参与云备份、仅在您开启定时通知时申请通知权限。</p>
+<p><strong>安全边界</strong>：上述措施无法抵御设备已被解锁、已被植入恶意软件或系统本身被攻破的情形。这类风险不在开发者控制范围内。</p>
+
+<h3>八、您的权利</h3>
+<p>您可以随时在本机直接行使以下权利，无需向开发者申请：<strong>查阅</strong>全部人设与对话；<strong>更正</strong>人设与头像；<strong>删除</strong>单个角色；<strong>清空全部数据</strong>（设置 → 我 → 注销账号）；<strong>撤回同意</strong>（关闭 AI 生成问候等需传输的功能）。</p>
+<p>由于开发者不持有您的任何数据，因此不存在需要向开发者提交的查阅或删除申请。</p>
+
+<h3>九、您的责任</h3>
+<p>您对所创建的人设、上传的头像与输入的内容负全部责任，承诺不制作、传播违法违规内容，不擅自使用他人姓名与肖像，不以真实人物创建角色而未取得授权。因违反上述承诺产生的法律责任由您承担。</p>
+
+<h3>十、未成年人保护</h3>
+<p><strong>若您未满 14 周岁，须由监护人代为阅读本协议并同意后方可使用</strong>；已满 14 周岁未满 18 周岁的，应在监护人指导下使用。</p>
+<p>本软件不主动收集儿童个人信息。若您自行输入姓名、学校、住址等信息，该信息存于本机并可能随对话发送至第三方。监护人应指导儿童勿在对话中透露身份信息，并可随时清空全部数据。</p>
+
+<h3>十一、通知与权限</h3>
+<p>定时通知为<strong>本地通知</strong>。固定文本模式完全离线；AI 生成模式需在每条问候中手动开启，到点才会将角色设定与主题发送至第三方。<strong>本版本不收集任何位置信息，也不使用任何第三方推送服务。</strong></p>
+
+<h3>十二、责任限制</h3>
+<p>本软件按「现状」提供，不保证不中断、无差错。在法律允许的最大范围内，对间接损失、数据丢失等不承担责任，赔偿总额以您实际支付的费用为限（本软件免费）。</p>
+<p><strong>但以下情形不受此限制</strong>：开发者的故意或重大过失、造成人身损害、违反数据保护义务导致您的个人信息被泄露或篡改、以及法律明确禁止排除责任的情形。<strong>本协议任何内容均不构成对您依法享有的消费者权益与个人信息权益的排除或限制。</strong></p>
+
+<h3>十三、其他</h3>
+<p>源代码以 MIT 许可证开源。本协议适用中华人民共和国法律，争议由被告住所地法院管辖。条款部分无效不影响其余条款效力。</p>
+
+<p style="margin-top:18px"><strong>点击前请确认</strong>：（一）已完整阅读并理解上述全部条款；（二）已理解需自行向第三方 AI 服务付费；（三）已理解人设与对话会发送至您选择的第三方，若为境外服务商则构成数据出境；（四）同意自行承担创建角色与输入内容的法律责任；（五）具备完全民事行为能力，或已在监护人同意下使用。</p>
 `;
 $('#consentBody').innerHTML = AGREEMENT_HTML;
 
@@ -3123,6 +3274,43 @@ setTimeout(() => {
   try { checkUpdate(false); } catch (e) { /* 检查失败不能影响使用 */ }
 }, 3000);
 
+
+/* ── AI 生成问候的单独同意 ──
+   协议里的总括同意不足以覆盖这一步：开启后会把整份人设定时发出去，
+   属于新的传输场景，需要用户单独确认一次。同意记在 localStorage。 */
+function greetAiAgreed() {
+  try { return localStorage.getItem('oc_greet_ai_ok') === '1'; } catch (e) { return false; }
+}
+
+function bindGreetAiNotice() {
+  const chk = $('#greetUseAI'), box = $('#aiGreetNotice'), ok = $('#btnAiGreetOk');
+  if (!chk || !box || !ok) return;
+
+  // 首次：用户勾「用 AI 生成」但还没单独同意过 → 勾选框回退，改弹确认
+  chk.onchange = () => {
+    if (chk.checked && !greetAiAgreed()) {
+      chk.checked = false;
+      box.style.display = 'block';
+      return;
+    }
+    box.style.display = 'none';
+  };
+
+  // 勾选框默认就是选中的，光靠 onchange 永远等不到用户动作。
+  // 打开面板时若已选中却还没单独同意，就强制回退并显示确认。
+  if (chk.checked && !greetAiAgreed()) {
+    chk.checked = false;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+
+  ok.onclick = () => {
+    try { localStorage.setItem('oc_greet_ai_ok', '1'); } catch (e) {}
+    box.style.display = 'none';
+    chk.checked = true;
+  };
+}
 </script>
 </body>
 </html>
