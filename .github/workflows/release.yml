@@ -1,0 +1,77 @@
+name: Release
+
+# 推一个 vX.Y.Z 的 tag 就自动构建并发布 Release。
+# 这样发版不需要在本机手工上传 APK。
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: 构建并发布
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # 创建 Release 需要
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: 准备签名证书
+        env:
+          KS_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then
+            echo "::error::缺少 secrets.RELEASE_KEYSTORE_B64，无法签名"
+            exit 1
+          fi
+          echo "$KS_B64" | base64 --decode > android/signing/release.keystore
+
+      - name: 构建 APK
+        env:
+          OC_KS_PASS: ${{ secrets.RELEASE_KEYSTORE_PASS }}
+          OC_KS_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+        run: |
+          cd android
+          ./build.sh
+
+      - name: 校验包名与版本
+        run: |
+          cd android
+          BT=$ANDROID_SDK_ROOT/build-tools/36.1.0
+          BADGING=$($BT/aapt2 dump badging OpenCompanion.apk)
+          echo "$BADGING" | head -1
+          # tag 与 manifest 里的 versionName 必须一致，否则装上会显示错误版本
+          TAG="${GITHUB_REF_NAME#v}"
+          VER=$(echo "$BADGING" | grep -oE "versionName='[^']+'" | cut -d"'" -f2)
+          if [ "$TAG" != "$VER" ]; then
+            echo "::error::tag $TAG 与 versionName $VER 不一致"
+            exit 1
+          fi
+          echo "✓ 版本一致：$VER"
+
+      - name: 发布
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/OpenCompanion.apk
+          name: OpenCompanion v${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          body: |
+            详细改动见 [CHANGELOG.md](https://github.com/CollinsLiu615/OpenCompanion/blob/main/CHANGELOG.md)。
+
+            ## 安装
+
+            1. 下载下面的 `OpenCompanion.apk`
+            2. 手机上点开安装，系统提示「未知来源」时选允许
+            3. 首次打开会要求阅读并同意用户协议与隐私政策
+            4. 按向导填写你自己的 AI 接口地址、API Key 和模型名
+
+            > 本软件不自带 AI 能力，需要你自己的 API Key。
+            > 全部数据保存在手机本地，不经过开发者服务器。
