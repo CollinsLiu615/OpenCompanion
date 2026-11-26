@@ -508,6 +508,81 @@ body{padding-bottom:0}
 #chatScreen.hasTabbar{height:100%}
 #chatScreen.hasTabbar #log{padding-bottom:8px}
 
+/* ══════ 微信式布局 ══════ */
+
+/* 列表页顶栏：大标题在左，右上角一个 + */
+.wxHd{display:flex;align-items:center;justify-content:space-between;
+      padding:6px 0 14px;gap:12px}
+.wxTitle{font-size:31px;font-weight:var(--hdWeight);letter-spacing:var(--hdLs);
+         text-transform:var(--hdTransform);margin:0;color:var(--fg);line-height:1.2;
+         font-family:var(--fontHd)}
+.wxAdd{width:40px;height:40px;min-width:40px;padding:0;margin:0;flex-shrink:0;
+       border:var(--bd) solid var(--line2);background:transparent;color:var(--dim);
+       display:flex;align-items:center;justify-content:center;cursor:pointer;
+       box-shadow:none;transition:color .2s, border-color .2s}
+.wxAdd:active{color:var(--accent2);border-color:var(--accent2)}
+
+/* 聊天列表：像微信那样一条条紧贴，中间留发丝分割线 */
+.chatList{margin:0 -18px}
+.chatItem{display:flex;gap:13px;align-items:center;padding:13px 18px;
+          cursor:pointer;position:relative;background:transparent;
+          will-change:transform;transition:background .15s}
+.chatItem:active{background:var(--card)}
+/* 分割线从文字左边开始，不和头像对齐（微信的细节） */
+.chatItem + .chatItem::before{content:"";position:absolute;left:71px;right:0;top:0;
+          height:1px;background:var(--line)}
+.chatAv{width:46px;height:46px;flex-shrink:0;object-fit:cover;
+        background:var(--card2);border:var(--bd) solid var(--line2);
+        display:flex;align-items:center;justify-content:center;
+        color:var(--dim);font-size:18px;font-weight:700}
+.chatBody{flex:1;min-width:0}
+.chatTop{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.chatName{font-size:15.5px;font-weight:700;color:var(--fg);
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatTime{font-size:11px;color:var(--dim2);flex-shrink:0}
+.chatLast{font-size:13px;color:var(--dim);margin-top:3px;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 列表右侧的 › 箭头：用两条边框旋转出来，不占字体 */
+.chev{width:8px;height:8px;flex-shrink:0;margin-left:4px;
+      border-top:1.6px solid var(--dim2);border-right:1.6px solid var(--dim2);
+      transform:rotate(45deg)}
+
+/* 聊天页头部：返回 / 名字 / 头像按钮 */
+.bk{width:38px;height:38px;min-width:38px;padding:0;margin:0;flex-shrink:0;
+    border:none;background:transparent;color:var(--dim);font-size:15px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:none;transition:color .18s}
+.bk:active{color:var(--accent2)}
+.chWho{flex:1;min-width:0}
+.chWho .nm{font-size:16px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chWho .st{font-size:11px;color:var(--dim2);margin-top:1px}
+.chAvBtn{width:40px;height:40px;min-width:40px;padding:0;margin:0;flex-shrink:0;
+         border:none;background:transparent;cursor:pointer;box-shadow:none;
+         display:flex;align-items:center;justify-content:center}
+.chAvBtn img,.chAvBtn .ph{width:36px;height:36px;object-fit:cover;
+         background:var(--card2);border:var(--bd) solid var(--line2);
+         display:flex;align-items:center;justify-content:center;
+         color:var(--dim);font-size:14px;font-weight:700}
+
+/* ── 设置里的条目行（点进去是二级页）── */
+.rowBtn{display:flex;align-items:center;gap:13px;width:100%;padding:15px 16px;
+        margin:0 0 10px;background:var(--card);border:var(--bd) solid var(--line);
+        color:var(--fg);font:inherit;text-align:left;cursor:pointer;
+        box-shadow:none;transition:border-color .18s, background .18s}
+.rowBtn:active{background:var(--card2);border-color:var(--accent2)}
+.rowIco{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;
+        justify-content:center;border:var(--bd) solid var(--line2);
+        font-size:15px;color:var(--dim);gap:2px}
+.rowIco i{width:5px;height:16px;display:block}
+.rowMain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rowTitle{font-size:15px;font-weight:800;color:var(--fg)}
+.rowSub{font-size:12px;color:var(--dim)}
+.rowGo{font-size:19px;color:var(--dim2);flex-shrink:0}
+
+/* 二级页返回按钮 */
+.backBtn{font-size:22px;line-height:1;font-weight:400}
+
 /* ── 主题选择器 ── */
 .themeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;
             position:relative}
@@ -527,8 +602,10 @@ body{padding-bottom:0}
 .tname{font-size:11.5px;font-weight:800;color:var(--fg);letter-spacing:.02em}
 .tcard.on .tname{color:var(--accent2)}
 /* 选中打勾 */
-.tcard.on::after{content:"✓";position:absolute;top:5px;right:7px;
-       font-size:11px;font-weight:900;color:var(--accent2);z-index:3}
+/* 选中勾：两条边框旋转 45 度画出来，不依赖字体里的 ✓ */
+.tcard.on::after{content:"";position:absolute;top:9px;right:8px;width:9px;height:5px;
+       border-left:2px solid var(--accent2);border-bottom:2px solid var(--accent2);
+       transform:rotate(-45deg);z-index:3}
 
 /* ── 文件选择框（浏览器默认是白底的，要和暗色主题一致）── */
 input[type=file]{width:100%;padding:0;border:none;background:transparent;
@@ -565,7 +642,10 @@ input[type=time]{color-scheme:dark}
 .screen{display:none;flex:1;overflow-y:auto;padding:24px 18px;
         padding-top:calc(24px + env(safe-area-inset-top))}
 .screen.on{display:block}
-#chatScreen{display:none;flex-direction:column;padding:0;overflow:hidden}
+/* 聊天页占满整个视口。body 不是 flex 容器，光靠 flex:1 撑不满，
+   所以这里直接给 100dvh（安卓旧 WebView 回退 100vh）。 */
+#chatScreen{display:none;flex-direction:column;padding:0;overflow:hidden;
+            height:100vh;height:100dvh}
 #chatScreen.on{display:flex}
 
 @keyframes riseIn{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
@@ -780,17 +860,12 @@ header .bk:active{color:var(--accent2)}
 .hint{font-size:11.5px;color:var(--dim2);margin-top:8px;line-height:1.7}
 
 /* 抽屉里的列表 */
-#plistSheet .box{background:var(--bg);border-radius:var(--r-lg) var(--r-lg) 0 0;max-height:82vh;
                  display:flex;flex-direction:column;
                  padding-bottom:env(safe-area-inset-bottom);
                  border-top:1px solid var(--line2);
                  animation:sheetUp .34s var(--ease) both}
 @keyframes sheetUp{from{translate:0 100%}to{translate:0 0}}
-#plistSheet .ph2{padding:20px 18px 16px;border-bottom:1px solid var(--line);
                  display:flex;align-items:center;justify-content:space-between}
-#plistSheet .ph2 h3{margin:0;font-size:20px;font-weight:900;letter-spacing:-.4px}
-#plistSheet .list{flex:1;overflow-y:auto;padding:10px}
-#plistSheet .ft{padding:14px;border-top:1px solid var(--line)}
 
 .pitem{display:flex;gap:13px;align-items:center;padding:13px;border-radius:var(--r);
        cursor:pointer;transition:background .18s var(--ease)}
@@ -840,8 +915,6 @@ header .bk:active{color:var(--accent2)}
       font:inherit;resize:vertical;line-height:1.75}
 #greetDialog .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 
-#plistSheet{display:none;align-items:flex-end}
-#plistSheet.on{display:flex}
 
 /* 通用弹窗 mbox */
 .mbox{background:var(--bg);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:520px;
@@ -874,20 +947,20 @@ header .bk:active{color:var(--accent2)}
 <!-- ══════ 底部导航（微信式：左对话 / 右设置）══════ -->
 <nav id="tabbar" class="tabbar" aria-label="主导航">
   <div class="tabIndicator" id="tabIndicator"></div>
-  <button class="tab" data-tab="chat" aria-label="对话">
+  <button class="tab" data-tab="chat" aria-label="聊天">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.9" stroke-linecap="square" stroke-linejoin="miter">
-      <path d="M3 5h18v12H8l-5 4V5z"/>
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H9l-4 4v-4h-.5A2.5 2.5 0 0 1 4 13.5z"/>
     </svg>
-    <span>对话</span>
+    <span>聊天</span>
   </button>
-  <button class="tab" data-tab="settings" aria-label="设置">
+  <button class="tab" data-tab="settings" aria-label="我">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.9" stroke-linecap="square">
-      <circle cx="12" cy="12" r="3.2"/>
-      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M18.9 5.1l-2.1 2.1M7.2 16.8l-2.1 2.1"/>
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="3.6"/>
+      <path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/>
     </svg>
-    <span>设置</span>
+    <span>我</span>
   </button>
 </nav>
 
@@ -942,7 +1015,7 @@ header .bk:active{color:var(--accent2)}
       <div class="sub" style="margin-bottom:0;margin-top:8px">
         本软件不自带 AI 能力，需填写你自己的接口信息</div>
     </div>
-    <button class="closeX" data-quit="1">✕</button>
+    <button class="closeX" data-quit="1" aria-label="关闭"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="sub"></div>
   <label>接口地址（base_url）</label>
@@ -964,7 +1037,7 @@ header .bk:active{color:var(--accent2)}
       <h1>它是个什么样的人</h1>
       <div class="sub" style="margin-bottom:0">用大白话写，AI 会帮你写成完整人设</div>
     </div>
-    <button class="closeX" data-quit="1">✕</button>
+    <button class="closeX" data-quit="1" aria-label="关闭"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="sub"></div>
   <label>名字</label>
@@ -989,7 +1062,7 @@ header .bk:active{color:var(--accent2)}
       <h1>完整人设</h1>
       <div class="sub" style="margin-bottom:0">不满意直接改</div>
     </div>
-    <button class="closeX" data-quit="1">✕</button>
+    <button class="closeX" data-quit="1" aria-label="关闭"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="sub"></div>
   <textarea id="persona" style="min-height:260px;font-size:16px;line-height:1.7"></textarea>
@@ -1010,24 +1083,35 @@ header .bk:active{color:var(--accent2)}
 
 <!-- 列表 -->
 <div class="screen" id="sList">
-  <div class="listTop">
-    <div style="min-width:0;flex:1">
-      <h1>我的伴侣</h1>
-      <div class="sub" style="margin-bottom:0;margin-top:8px">点一个开始聊天</div>
-    </div>
+  <div class="wxHd">
+    <h1 class="wxTitle">聊天</h1>
+    <button class="wxAdd" id="btnNewTop" aria-label="新建伴侣">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="square">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </button>
   </div>
-  <div id="plist"></div>
-  <button id="btn-new">＋ 新建一个伴侣</button>
+  <div id="plist" class="chatList"></div>
 </div>
 
 <!-- 聊天 -->
 <div id="chatScreen">
   <header>
-    <div class="bk" id="btnList">☰</div>
-    <img id="chAv" style="display:none"><div class="ph" id="chPh">?</div>
-    <div style="min-width:0"><div class="nm" id="chNm"></div>
-      <div class="st">本地对话 · 数据不出手机</div></div>
-    <div class="bk" id="btnSet" style="margin-left:auto">⚙</div>
+    <button class="bk" id="btnList" aria-label="返回">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <div class="chWho">
+      <div class="nm" id="chNm"></div>
+      <div class="st">本地对话 · 数据不出手机</div>
+    </div>
+    <!-- 点头像进伴侣设定：人设、头像、定时问候都在那里 -->
+    <button class="chAvBtn" id="btnPersona" aria-label="伴侣设定">
+      <img id="chAv" style="display:none"><div class="ph" id="chPh">?</div>
+    </button>
   </header>
   <div id="log"></div>
   <div id="bar">
@@ -1038,12 +1122,53 @@ header .bk:active{color:var(--accent2)}
 
 <!-- ══════ 设置面板 ══════ -->
 <div class="sheet" id="settings">
-  <div class="sheetHd">
-    <h3>设置</h3>
-    <button class="xbtn" id="btnCloseSet">✕</button>
+  <div class="sheetHd wxHd">
+    <h3 class="wxTitle">我</h3>
   </div>
   <div class="sheetBd">
-    <div class="sblock charOnly">
+    <div class="sblock">
+      <h4>外观</h4>
+      <button class="rowBtn" id="btnAppearance">
+        <span class="rowIco" id="rowThemeSw">
+          <i style="background:var(--bg)"></i>
+          <i style="background:var(--accent2)"></i>
+          <i style="background:var(--fg)"></i>
+        </span>
+        <span class="rowMain">
+          <span class="rowTitle">主题风格</span>
+          <span class="rowSub" id="rowThemeName">赤潮</span>
+        </span>
+        <span class="rowGo">›</span>
+      </button>
+      <button class="rowBtn" id="btnAboutRow">
+        <span class="rowIco">ⓘ</span>
+        <span class="rowMain">
+          <span class="rowTitle">关于 OpenCompanion</span>
+          <span class="rowSub" id="rowVer">v0.1.1</span>
+        </span>
+        <span class="rowGo">›</span>
+      </button>
+    </div>
+
+    <div class="sblock">
+      <h4>账号</h4>
+      <button class="sbtn danger" id="btnLogout">注销账号</button>
+      <div class="hint">会删除本机全部数据，包括 API 配置、所有人设、头像与聊天记录。</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════ 伴侣设定（从聊天页头像进入）══════ -->
+<div class="sheet" id="personaSheet">
+  <div class="sheetHd">
+    <button class="xbtn backBtn" id="btnPersonaBack">‹</button>
+    <h3>伴侣设定</h3>
+    <div style="width:36px"></div>
+  </div>
+  <div class="sheetBd">
+
+    <div class="sblock">
       <h4>人设</h4>
       <div class="avrow">
         <img id="setAv" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%231e2430'/%3E%3Ctext x='36' y='46' font-size='26' text-anchor='middle' fill='%235f6775'%3E%3F%3C/text%3E%3C/svg%3E">
@@ -1061,40 +1186,42 @@ header .bk:active{color:var(--accent2)}
       <button class="sbtn primary" id="btnSavePersona">保存修改</button>
     </div>
 
-    <div class="sblock charOnly">
+    <div class="sblock">
       <h4>定时问候</h4>
       <div id="schedList"></div>
       <button class="sbtn" id="btnAddGreet" style="margin-top:8px">＋ 添加一个问候</button>
       <div class="hint">到点会自动发消息给你。需要允许通知和后台运行权限。</div>
     </div>
 
-    <div class="sblock charOnly">
+    <div class="sblock">
       <h4>对话记录</h4>
       <button class="sbtn" id="btnExport">导出对话（复制到剪贴板）</button>
       <button class="sbtn danger" id="btnClear">清除聊天记录</button>
     </div>
 
-    <div class="sblock charOnly">
+    <div class="sblock">
       <h4>删除</h4>
       <button class="sbtn danger" id="btnDelete">删除这个人物</button>
       <div class="hint">连同人设、头像、全部对话一起删除，不可恢复。</div>
     </div>
+  </div>
+</div>
 
-    <div class="sblock">
-      <h4>外观</h4>
-      <div id="themeGrid" class="themeGrid"></div>
-      <div class="hint">每个主题带一整套配色、字体与纹理，不影响任何数据。</div>
+<!-- ══════ 外观（二级页）══════ -->
+<div class="sheet" id="appearance">
+  <div class="sheetHd">
+    <button class="xbtn backBtn" id="btnAppBack">‹</button>
+    <h3>主题风格</h3>
+    <div style="width:36px"></div>
+  </div>
+  <div class="sheetBd">
+    <div class="hint" style="margin:0 0 16px">
+      每套主题带一整套配色、字体、圆角与纹理，切换即时生效。
     </div>
-
-    <div class="sblock">
-      <h4>关于</h4>
-      <button class="sbtn" id="btnAbout">关于 OpenCompanion</button>
-    </div>
-
-    <div class="sblock">
-      <h4>账号</h4>
-      <button class="sbtn danger" id="btnLogout">注销账号</button>
-      <div class="hint">会删除本机全部数据，包括 API 配置、所有人设、头像与聊天记录。</div>
+    <div id="themeGrid" class="themeGrid"></div>
+    <div class="hint" style="margin-top:18px">
+      当前：<b id="curThemeName" style="color:var(--accent2)">赤潮</b>。
+      这个选择会记在手机上，不影响任何人设与对话。
     </div>
   </div>
 </div>
@@ -1227,7 +1354,7 @@ header .bk:active{color:var(--accent2)}
   <div class="box">
     <div class="ph2">
       <h3 id="greetTitle">添加问候</h3>
-      <button class="xbtn" id="greetClose">✕</button>
+      <button class="xbtn" id="greetClose" aria-label="关闭"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="body">
       <label>时间</label>
@@ -1263,7 +1390,6 @@ header .bk:active{color:var(--accent2)}
 </div>
 
 <!-- ══════ 人物列表抽屉 ══════ -->
-<div class="sheet maskSheet" id="plistSheet"></div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -1457,15 +1583,30 @@ function show(sc) {
   $('#chatScreen').classList.remove('on', 'hasTabbar');
   const el = (sc === 'chat') ? $('#chatScreen') : $(sc);
   el.classList.add('on');
-  // 除启动/协议/向导外，内容区都要给底部导航让位
-  const hideBar = (sc === '#s1' || sc === '#s2' || sc === '#s3');
+  // 这些页面隐藏底栏：
+  //   启动 / 协议 / 向导 —— 还没进主界面
+  //   聊天页           —— 全屏沉浸，用返回键回列表，底栏会和输入框抢位置
+  const hideBar = (sc === '#s1' || sc === '#s2' || sc === '#s3' || sc === 'chat');
   $('#tabbar').classList.toggle('hide', hideBar);
-  if (!hideBar) el.classList.add('hasTabbar');
+  // 聊天页自己占满一屏，不需要给底栏留白
+  if (!hideBar && sc !== 'chat') el.classList.add('hasTabbar');
   if (sc === '#sList') renderList();
 }
 function tip(el, ok, text) {
   el.className = 'msg ' + (ok ? 'ok' : 'err');
-  el.textContent = (ok ? '✓ ' : '✗ ') + text;
+  // 结果提示用 SVG 勾/叉，不用 emoji（不同系统字形差异大）
+  el.innerHTML = '';
+  const ic = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  ic.setAttribute('viewBox','0 0 24 24');
+  ic.setAttribute('width','14'); ic.setAttribute('height','14');
+  ic.setAttribute('fill','none'); ic.setAttribute('stroke','currentColor');
+  ic.setAttribute('stroke-width','2.6'); ic.setAttribute('stroke-linecap','round');
+  ic.style.cssText = 'vertical-align:-2px;margin-right:5px;flex-shrink:0';
+  const pl = document.createElementNS('http://www.w3.org/2000/svg','path');
+  pl.setAttribute('d', ok ? 'M4 12.5l5.5 5.5L20 6.5' : 'M6 6l12 12M18 6L6 18');
+  ic.appendChild(pl);
+  el.appendChild(ic);
+  el.appendChild(document.createTextNode(text));
 }
 
 /* ══════════ AI 调用（安卓走原生桥，浏览器走 fetch）══════════ */
@@ -1651,48 +1792,61 @@ function renderList() {
   const box = $('#plist');
   box.innerHTML = '';
   if (!personas.length) {
-    // 空状态：把「去新建」做成主视觉，而不是一行灰字
-    box.innerHTML = `<div style="text-align:center;padding:56px 20px 40px">
-      <div style="font-size:52px;font-weight:900;letter-spacing:-3px;
-                  background:linear-gradient(160deg,var(--accent2),var(--accent) 60%,#5a0f1d);
-                  -webkit-background-clip:text;background-clip:text;color:transparent;
-                  line-height:1;margin-bottom:18px">+</div>
-      <div style="font-size:17px;font-weight:800;margin-bottom:8px">还没有伴侣</div>
+    box.innerHTML = `<div style="text-align:center;padding:64px 20px 40px;margin:0 18px">
+      <div style="width:56px;height:56px;margin:0 auto 20px;
+                  border:2px dashed var(--line2);position:relative">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none"
+               stroke="var(--dim2)" stroke-width="2" stroke-linecap="round">
+            <path d="M12 6v12M6 12h12"/>
+          </svg>
+        </div>
+      </div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px">还没有伴侣</div>
       <div style="font-size:13px;color:var(--dim);line-height:1.8">
-        点下面的按钮，用一句话描述你想要的角色<br>AI 会帮你写成完整人设</div>
+        点右上角的 + 新建一个<br>用一句话描述，AI 帮你写成完整人设</div>
     </div>`;
   }
+
   personas.forEach((p, i) => {
+    const h = p.history || [];
+    const last = h.length ? h[h.length - 1] : null;
+    const lastTxt = last
+      ? (last.role === 'user' ? '你：' : '') + String(last.content || '').replace(/\s+/g, ' ')
+      : '还没有聊过';
+
     const d = document.createElement('div');
-    d.className = 'p';
-    const n = (p.history || []).length;
+    d.className = 'chatItem';
     d.innerHTML = (p.avatar
-        ? `<img src="${p.avatar}">`
-        : `<div class="ph">${esc(p.name.slice(0,1))}</div>`)
-      + `<div style="min-width:0;flex:1"><div class="nm">${esc(p.name)}</div>
-         <div class="meta">${n ? n + ' 条对话' : '还没聊过'}</div></div>
-         <div class="go">›</div>`;
+        ? `<img class="chatAv" src="${p.avatar}">`
+        : `<div class="chatAv">${esc(p.name.slice(0,1))}</div>`)
+      + `<div class="chatBody">
+           <div class="chatTop">
+             <span class="chatName">${esc(p.name)}</span>
+             <span class="chatTime">${h.length ? h.length + ' 条' : ''}</span>
+           </div>
+           <div class="chatLast">${esc(lastTxt)}</div>
+         </div>
+         <div class="chev"></div>`;
     d.onclick = () => openChat(p.id);
     box.appendChild(d);
-    // 交错入场：第 i 个延后 i*45ms 再弹。
-    // 用 setTimeout 拉开起点是为了「依次出现」，但每个元素自身的运动
-    // 仍然是弹簧，且中途再次渲染时旧弹簧直接跳到位、不会卡在半路。
-    const delay = i * 45;
+
+    // 逐条弹簧入场
     d.style.opacity = '0';
     setTimeout(() => {
       if (!d.isConnected) return;
-      Spring.to(22, 0, v => {
+      Spring.to(18, 0, v => {
         d.style.transform = `translateY(${v}px)`;
-        d.style.opacity = String(Math.min(1, Math.max(0, 1 - v / 24)));
+        d.style.opacity = String(Math.min(1, Math.max(0, 1 - v / 20)));
       }, Object.assign(themeMotion(), { restDelta: 0.05, restSpeed: 0.5,
            onRest: () => { d.style.transform = ''; d.style.opacity = ''; } }));
-    }, delay);
+    }, i * 45);
   });
 }
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-$('#btn-new').onclick = () => startNewPersona();
+$('#btnNewTop').onclick = () => startNewPersona();
 
 /* ══════════ 主题 ══════════ */
 // 主题清单：只存 key，颜色由 CSS 的 html[data-theme=...] 决定
@@ -1740,6 +1894,7 @@ function applyTheme(key) {
       c.classList.toggle('on', c.dataset.themeKey === key);
     });
     moveThemeFrame(key, true);
+    updateThemeRow();
     // 换风格后指示条的弹簧节奏跟上
     if (tabIndX && tabIndW) {
       const m = themeMotion();
@@ -1852,6 +2007,9 @@ function applyFrame(frame) {
   try {
     if (new URLSearchParams(location.search).has('theme')) {
       window.__OC_PREVIEW__ = true;
+      if (new URLSearchParams(location.search).get('demo') === '1') {
+        window.__OC_DEMO__ = true;
+      }
     }
   } catch (e) {}
 })();
@@ -1963,6 +2121,30 @@ function _releasePress(e) {
 }
 document.addEventListener('pointerup', _releasePress, { passive: true });
 document.addEventListener('pointercancel', _releasePress, { passive: true });
+
+
+/* ══════════ 外观（二级页）══════════ */
+function openAppearance() {
+  renderThemeGrid();
+  updateThemeRow();
+  $('#appearance').classList.add('on');
+}
+function closeAppearance() {
+  $('#appearance').classList.remove('on');
+  updateThemeRow();
+}
+
+// 设置主页那一行显示当前主题名
+function updateThemeRow() {
+  const t = THEMES.find(x => x.key === currentTheme());
+  const name = t ? t.name : '赤潮';
+  const a = $('#rowThemeName'); if (a) a.textContent = name;
+  const b = $('#curThemeName'); if (b) b.textContent = name;
+}
+
+$('#btnAppearance').onclick = openAppearance;
+$('#btnAppBack').onclick = closeAppearance;
+$('#btnAboutRow').onclick = () => $('#aboutModal').classList.add('on');
 
 /* ══════════ 聊天 ══════════ */
 let cur = null, busy = false;
@@ -2299,54 +2481,42 @@ function syncNativeAlarms() {
 
 /* ══════════ 设置面板 / 人物列表 ══════════ */
 const settingsEl = $('#settings');
-const plistSheet = $('#plistSheet');
 
+/* 设置页 = 微信「我」：
+   只放全局的东西（外观、关于、账号）。
+   角色相关（人设、头像、定时问候、删角色）挪到聊天页头像点开的
+   「伴侣设定」面板里——那是针对某个人的操作，不该跟全局设置混在
+   一起。 */
 function openSettings() {
-  // 从主界面进入时没有当前角色：隐藏只对角色有意义的区块，
-  // 保留「外观 / 关于 / 账号」这些全局设置。
-  const hasCur = !!cur;
-  document.querySelectorAll('#settings .charOnly').forEach(el => {
-    el.style.display = hasCur ? '' : 'none';
-  });
-  renderThemeGrid();
-  if (!hasCur) { settingsEl.classList.add('on'); return; }
+  updateThemeRow();
+  const v = $('#rowVer'); if (v) v.textContent = 'v' + (currentVersion() || '0.1.1');
+  settingsEl.classList.add('on');
+}
+function closeSettings() { settingsEl.classList.remove('on'); }
+
+/* 伴侣设定面板（从聊天页头像进入） */
+function openPersona() {
+  if (!cur) return;
   $('#setName').value = cur.name || '';
   $('#setBrief').value = cur.brief || '';
   $('#setPersona').value = cur.persona || '';
   renderSchedule();
   $('#setAv').src = cur.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%231e2430'/%3E%3Ctext x='36' y='46' font-size='26' text-anchor='middle' fill='%235f6775'%3E%3F%3C/text%3E%3C/svg%3E";
-  settingsEl.classList.add('on');
+  $('#personaSheet').classList.add('on');
 }
-function closeSettings() { settingsEl.classList.remove('on'); }
-$('#btnSet').onclick = openSettings;
-$('#btnCloseSet').onclick = closeSettings;
+function closePersona() { $('#personaSheet').classList.remove('on'); }
+$('#btnPersona').onclick = openPersona;
+$('#btnPersonaBack').onclick = closePersona;
 
-function showPlist() {
-  const box = $('#plistSheet');
-  let html = '<div class="box"><div class="ph2"><h3>我的伴侣</h3>'
-           + '<button class="xbtn" id="closePlist">✕</button></div><div class="list">';
-  personas.forEach(p => {
-    html += `<div class="pitem${p.id === (cur&&cur.id) ? ' cur' : ''}" data-id="${p.id}">`
-         +  (p.avatar ? `<img src="${p.avatar}">` : `<div class="ph">${esc(p.name.slice(0,1))}</div>`)
-         +  `<div><div class="pnm">${esc(p.name)}</div>`
-         +  `<div class="pmeta">${(p.history||[]).length} 条对话</div></div></div>`;
-  });
-  if (!personas.length) html += '<div class="hint" style="padding:14px">还没有伴侣</div>';
-  html += '</div><div class="ft"><button class="sbtn" id="plistNew">＋ 新建一个伴侣</button></div></div>';
-  box.innerHTML = html;
-  box.classList.add('on');
-
-  box.querySelector('#closePlist').onclick = () => box.classList.remove('on');
-  box.querySelector('#plistNew').onclick = () => { box.classList.remove('on'); startNewPersona(); };
-  box.querySelectorAll('.pitem').forEach(el => {
-    el.onclick = () => {
-      box.classList.remove('on');
-      openChat(el.dataset.id);
-    };
-  });
-  box.onclick = ev => { if (ev.target === box) box.classList.remove('on'); };
+// 聊天页左上角返回：回到聊天列表
+/* 聊天页返回列表：必须先清掉 cur，否则 setTab('chat') 会以为
+   「有当前角色」又把页面推回聊天页。 */
+function backToList() {
+  cur = null;
+  show('#sList');
+  setTab('chat', false);
 }
-$('#btnList').onclick = showPlist;
+$('#btnList').onclick = backToList;
 
 /* 保存人设 */
 $('#btnSavePersona').onclick = () => {
@@ -2451,12 +2621,13 @@ $('#btnDelete').onclick = () => {
 
 /* 安卓返回键：优先关面板 */
 window.OCBack = () => {
-  for (const m of ['#termsSheet', '#quitMask', '#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
+  // 注意顺序：后打开的在前，返回键先关最上层的
+  for (const m of ['#personaSheet', '#appearance', '#termsSheet', '#quitMask',
+                   '#aboutModal', '#logout1', '#logout2', '#greetDialog']) {
     const el = document.querySelector(m);
     if (el && el.classList.contains('on')) { el.classList.remove('on'); return true; }
   }
   if (settingsEl.classList.contains('on')) { closeSettings(); return true; }
-  if (plistSheet.classList.contains('on')) { plistSheet.classList.remove('on'); return true; }
   if ($('#chatScreen').classList.contains('on')) { renderList(); show('#sList'); return true; }
   for (const id of ['#s1','#s2','#s3']) {
     if ($(id).classList.contains('on')) { show('#sList'); return true; }
@@ -2515,12 +2686,14 @@ function enterApp() {
 
 async function runSplash() {
   // 预览模式：跳过启动动画和协议门，直接看界面
+  // ?theme= 只用来指定主题，界面本身必须和真机一致：
+  // 该显示配置页就显示配置页，不能塞假数据冒充「已有伴侣」。
+  // 只有额外加了 ?demo=1 才灌示例数据（用于截图和看气泡效果）。
   if (window.__OC_PREVIEW__) {
     $('#splash').style.display = 'none';
     $('#consent').classList.remove('on');
     splashDone = true;
-    // 灌几条示例数据，让预览能看到列表页和聊天气泡的样子
-    if (!personas.length) {
+    if (window.__OC_DEMO__ && !personas.length) {
       personas.push({id:'demo1', name:'林浅', brief:'嘴硬心软的女大学生',
                      persona:'21 岁，计算机系大三。说话直，爱吐槽。',
                      history:[{role:'assistant',content:'你今天怎么这么晚才回家？'},
@@ -2535,7 +2708,11 @@ async function runSplash() {
       personas.push({id:'demo3', name:'阿汀', brief:'还没聊过',
                      persona:'刚认识。', history:[], avatar:null, schedules:[]});
     }
-    renderList(); show('#sList');
+    // 有 demo 数据时直接进列表：预览要看的是聊天界面，
+    // 不能因为没填 API Key 就卡在配置页
+    if (window.__OC_DEMO__) { renderList(); show('#sList'); return; }
+    // 否则走和真机一样的分发逻辑
+    enterApp();
     return;
   }
   const sp = $('#splash');
@@ -2798,7 +2975,7 @@ termsSheet.onclick = e => { if (e.target === termsSheet) closeTerms(); };
 
 /* ══════════ 关于 ══════════ */
 const aboutModal = $('#aboutModal');
-$('#btnAbout').onclick = () => aboutModal.classList.add('on');
+// 关于弹窗由设置主页的条目行触发，见 openAbout()
 $('#aboutClose').onclick = () => aboutModal.classList.remove('on');
 aboutModal.onclick = e => { if (e.target === aboutModal) aboutModal.classList.remove('on'); };
 
