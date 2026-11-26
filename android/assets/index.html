@@ -859,13 +859,8 @@ header .bk:active{color:var(--accent2)}
 .sbtn.danger:active{background:rgba(255,84,104,.12)}
 .hint{font-size:11.5px;color:var(--dim2);margin-top:8px;line-height:1.7}
 
-/* 抽屉里的列表 */
-                 display:flex;flex-direction:column;
-                 padding-bottom:env(safe-area-inset-bottom);
-                 border-top:1px solid var(--line2);
-                 animation:sheetUp .34s var(--ease) both}
+/* 底部升起的抽屉里有列表用这个动画 */
 @keyframes sheetUp{from{translate:0 100%}to{translate:0 0}}
-                 display:flex;align-items:center;justify-content:space-between}
 
 .pitem{display:flex;gap:13px;align-items:center;padding:13px;border-radius:var(--r);
        cursor:pointer;transition:background .18s var(--ease)}
