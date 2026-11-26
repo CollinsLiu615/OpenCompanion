@@ -5,8 +5,23 @@ set -e
 
 : "${ANDROID_HOME:=$HOME/android-sdk}"
 # 必须用 JDK 21：Gradle/d8 对 25 支持不完整
-export JAVA_HOME=${JAVA_HOME_21:-/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home}
-[ -d "$JAVA_HOME" ] || export JAVA_HOME=$(/usr/libexec/java_home -v 21 2>/dev/null || echo "")
+# 找 JDK 21：按顺序试环境变量、macOS 默认路径、Linux 下 setup-java 的位置。
+# 之前只写了 macOS 路径，在 CI 的 ubuntu 上会变成空值。
+if [ -z "$JAVA_HOME" ] || [ ! -d "$JAVA_HOME" ]; then
+  for _cand in \
+    "${JAVA_HOME_21:-}" \
+    /Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home \
+    "$(command -v javac >/dev/null 2>&1 && dirname "$(dirname "$(readlink -f "$(command -v javac)" 2>/dev/null || command -v javac)")")"; do
+    if [ -n "$_cand" ] && [ -x "$_cand/bin/javac" ]; then
+      export JAVA_HOME="$_cand"
+      break
+    fi
+  done
+fi
+if [ ! -x "${JAVA_HOME:-/nonexistent}/bin/javac" ]; then
+  echo "  ✗ 找不到 JDK 21（JAVA_HOME=$JAVA_HOME）"
+  exit 1
+fi
 BT="$ANDROID_HOME/build-tools/36.1.0"
 PLATFORM="$ANDROID_HOME/platforms/android-36/android.jar"
 OUT=build
