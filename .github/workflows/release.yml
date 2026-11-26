@@ -41,7 +41,10 @@ jobs:
             echo "::error::缺少 secrets.RELEASE_KEYSTORE_B64，无法签名"
             exit 1
           fi
+          # signing/ 在 .gitignore 里，checkout 后目录不存在，先建出来
+          mkdir -p android/signing
           echo "$KS_B64" | base64 --decode > android/signing/release.keystore
+          ls -la android/signing/release.keystore
 
       - name: 构建 APK
         env:
