@@ -12,7 +12,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-lightgrey.svg)](#安装)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](#)
 
 [Benzene AI Studio](https://space.bilibili.com/1968400182) · Eight Pixel · [@CollinsLiu615](https://github.com/CollinsLiu615)
 
@@ -38,14 +38,14 @@ OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自�
 <table>
 <tr>
 <td><img src="docs/screenshots/splash.png" width="180" alt="启动动画"></td>
-<td><img src="docs/screenshots/wizard.png" width="180" alt="创建向导"></td>
-<td><img src="docs/screenshots/list.png" width="180" alt="伴侣列表"></td>
-<td><img src="docs/screenshots/chat.png" width="180" alt="聊天"></td>
+<td><img src="docs/screenshots/wizard.png" width="180" alt="配置向导"></td>
+<td><img src="docs/screenshots/list.png" width="180" alt="聊天列表"></td>
+<td><img src="docs/screenshots/chat.png" width="180" alt="对话"></td>
 </tr>
 <tr>
 <td align="center">启动动画</td>
-<td align="center">三步创建</td>
-<td align="center">伴侣列表</td>
+<td align="center">配置向导</td>
+<td align="center">聊天列表</td>
 <td align="center">对话</td>
 </tr>
 </table>
@@ -54,16 +54,16 @@ OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自�
 <div align="center">
 <table>
 <tr>
+<td><img src="docs/screenshots/me.png" width="180" alt="我"></td>
+<td><img src="docs/screenshots/persona.png" width="180" alt="伴侣设定"></td>
 <td><img src="docs/screenshots/themes.png" width="180" alt="主题选择器"></td>
 <td><img src="docs/screenshots/theme-bauhaus.png" width="180" alt="包豪斯"></td>
-<td><img src="docs/screenshots/theme-ink.png" width="180" alt="水墨"></td>
-<td><img src="docs/screenshots/settings.png" width="180" alt="设置面板"></td>
 </tr>
 <tr>
+<td align="center">我</td>
+<td align="center">伴侣设定</td>
 <td align="center">17 套主题</td>
 <td align="center">包豪斯</td>
-<td align="center">水墨</td>
-<td align="center">设置</td>
 </tr>
 </table>
 </div>
@@ -79,6 +79,10 @@ OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自�
 节奏都会一起变。在「设置 → 外观」里选，选项即时生效并记在手机上。
 
 ## 安装
+
+最新版本：**[v0.1.1 下载](https://github.com/CollinsLiu615/OpenCompanion/releases/latest)**
+
+
 
 ### 安卓 App（完全离线）
 
