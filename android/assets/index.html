@@ -565,6 +565,11 @@ body{padding-bottom:0}
          display:flex;align-items:center;justify-content:center;
          color:var(--dim);font-size:14px;font-weight:700}
 
+/* 「我」页：和聊天列表平级的一级标签页 */
+#sMe .wxHd{padding:6px 0 6px}
+#sMe .sblock{margin-top:22px}
+#sMe .sblock:first-of-type{margin-top:10px}
+
 /* ── 设置里的条目行（点进去是二级页）── */
 .rowBtn{display:flex;align-items:center;gap:13px;width:100%;padding:15px 16px;
         margin:0 0 10px;background:var(--card);border:var(--bd) solid var(--line);
@@ -1116,11 +1121,11 @@ header .bk:active{color:var(--accent2)}
 </div>
 
 <!-- ══════ 设置面板 ══════ -->
-<div class="sheet" id="settings">
-  <div class="sheetHd wxHd">
-    <h3 class="wxTitle">我</h3>
+<div class="screen" id="sMe">
+  <div class="wxHd">
+    <h1 class="wxTitle">我</h1>
   </div>
-  <div class="sheetBd">
+  <div>
     <div class="sblock">
       <h4>外观</h4>
       <button class="rowBtn" id="btnAppearance">
@@ -2475,19 +2480,21 @@ function syncNativeAlarms() {
 }
 
 /* ══════════ 设置面板 / 人物列表 ══════════ */
-const settingsEl = $('#settings');
+
 
 /* 设置页 = 微信「我」：
    只放全局的东西（外观、关于、账号）。
    角色相关（人设、头像、定时问候、删角色）挪到聊天页头像点开的
    「伴侣设定」面板里——那是针对某个人的操作，不该跟全局设置混在
    一起。 */
+/* 设置页 = 微信「我」，是底栏的一个一级标签页（不是弹窗）。
+   所以这里不控制显隐，显隐由 show() 统一负责。 */
 function openSettings() {
   updateThemeRow();
   const v = $('#rowVer'); if (v) v.textContent = 'v' + (currentVersion() || '0.1.1');
-  settingsEl.classList.add('on');
+  show('#sMe');
 }
-function closeSettings() { settingsEl.classList.remove('on'); }
+function closeSettings() { show('#sList'); }
 
 /* 伴侣设定面板（从聊天页头像进入） */
 function openPersona() {
@@ -2622,7 +2629,7 @@ window.OCBack = () => {
     const el = document.querySelector(m);
     if (el && el.classList.contains('on')) { el.classList.remove('on'); return true; }
   }
-  if (settingsEl.classList.contains('on')) { closeSettings(); return true; }
+  if ($('#sMe') && $('#sMe').classList.contains('on')) { backToList(); return true; }
   if ($('#chatScreen').classList.contains('on')) { renderList(); show('#sList'); return true; }
   for (const id of ['#s1','#s2','#s3']) {
     if ($(id).classList.contains('on')) { show('#sList'); return true; }
