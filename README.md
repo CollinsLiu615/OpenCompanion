@@ -12,7 +12,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-lightgrey.svg)](#安装)
-[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)](#)
 
 [Benzene AI Studio](https://space.bilibili.com/1968400182) · Eight Pixel · [@CollinsLiu615](https://github.com/CollinsLiu615)
 
@@ -80,7 +80,7 @@ OpenCompanion 反过来：**人设由你写，AI 由你接，数据存在你自�
 
 ## 安装
 
-最新版本：**[v0.1.1 下载](https://github.com/CollinsLiu615/OpenCompanion/releases/latest)**
+最新版本：**[v0.1.2 下载](https://github.com/CollinsLiu615/OpenCompanion/releases/latest)**
 
 
 
